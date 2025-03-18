@@ -245,7 +245,7 @@ with st.form(key='iat_assessment'):
                         with open(save_path, "wb") as f:
                             f.write(file.getbuffer())
                             
-                raise ValueError("Not sending to salesforce at moment")
+                #raise ValueError("Not sending to salesforce at moment")
 
                 st.write(new_opp)
                 result = st.session_state.salesforce.__getattr__('Opportunity').create(new_opp)
