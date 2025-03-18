@@ -1,27 +1,27 @@
-
-import requests
 import json
 import os
-from create_html import *
-from ict_constants import *
+import shutil
+from pages.lib.ict_create_html import *
+from pages.lib.constants import *
+from pages.lib.salesforce_access import *
+from pages.lib.dates_info import *
 import streamlit as st
-from simple_salesforce import Salesforce
 from decouple import config
 from datetime import datetime
 
+st.set_page_config(initial_sidebar_state="collapsed")
 
+# Store a variable in session_state
+if "salesforce" not in st.session_state:
+    st.session_state.salesforce = connect_to_salesforce()
 
 def validate_fields(fields):
     required_fields = ["project_name",
                        "contact_name",
                        "fixture_type",
                        "date",
-                       "contact_email",
-                       "quantity_devices",
-                       "program_devices",
-                       "programmer_brand",
-                       "versions"
-                       ]
+                       "contact_email"
+                    ]
 
     error_strings = []
     for required_field in required_fields:
@@ -35,96 +35,43 @@ def validate_fields(fields):
 
     return []
 
-
-def connect_to_salesforce():
-    try:
-        sf_info = dict()
-        # Obtener credenciales desde el archivo .env
-        sf_info["username"] = config('SALESFORCE_USERNAME')
-        sf_info["password"] = config('SALESFORCE_PASSWORD')
-        sf_info["security_token"] = config('SALESFORCE_SECURITY_TOKEN')
-        sf_info["consumer_key"] = config('SALESFORCE_CONSUMER_KEY')
-        sf_info["consumer_secret"] = config('SALESFORCE_CONSUMER_SECRET')
-
-        # Conectar a Salesforce
-        sf = Salesforce(
-            username=sf_info["username"],
-            password=sf_info["password"],
-            security_token=sf_info["security_token"],
-            consumer_key=sf_info["consumer_key"],
-            consumer_secret=sf_info["consumer_secret"]
-        )
-
-        # st.success("Conexión exitosa a Salesforce!")
-        # st.write(sf)
-        redirect_uri = config("REDIRECT_URL")
-        # f'https://login.salesforce.com/services/oauth2/token'
-        token_url = config("TOKEN_URL")
-        payload = {
-            'grant_type': 'password',
-            'client_id': sf_info["consumer_key"],
-            'client_secret': sf_info["consumer_secret"],
-            'username': sf_info["username"],
-            'password': sf_info["password"] + sf_info["security_token"]
-        }
-
-        response = requests.post(token_url, data=payload)
-        token_data = response.json()
-        # if "access_token" in token_data:
-        #     st.success("Token de acceso obtenido exitosamente!")
-        #     st.write(token_data["access_token"])
-
-        return sf
-
-    except Exception as e:
-        st.error(f"Error al conectar a Salesforce: {e}")
-        return None
-
-
-def add_device(value):
-    if not "devices" in st.session_state:
-        st.session_state.devices = value
-
-
 # Título de la aplicación
-st.title("ICT Assesment")
-
-sf = connect_to_salesforce()
+st.title("In Circuit Test Assesment")
 
 info = dict()
-
-if "flash_prog" not in st.session_state:
-    st.session_state.flash_prog = False
+YEAR = str(datetime.today().year)
 
 # Crear un formulario
 with st.form(key='ict_assesment'):
-    # Sección 1: Información Personal
-    # st.header("Contact Information")
-
     col1, col2 = st.columns(2)
     with col1:
         info["project_name"] = st.text_input(
             'Name or Project Reference', placeholder="Enter the name of the project", )
         info["contact_name"] = st.text_input(
             'Contact', placeholder="Enter your name")
+        info['country'] = st.selectbox('Country', options=COUNTRIES_DICT.keys())
+        info["customer_name"] = st.text_input(
+            'Customer Name or Plant', placeholder="Enter the name of the customer or Plant", )
+        #st.selectbox("Accounts", options=ACCOUTS, index=None )
+        
         info["contact_phone"] = st.text_input(
             'Phone Number', placeholder="Enter your phone number")
-
-        info["fixure_type"] = st.radio(
-            'Fixture Type', FIXTURE_TYPES, horizontal=True)
-
+       
     with col2:
         info["date"] = st.date_input('Date').strftime("%Y-%m-%d")
         info["contact_email"] = st.text_input('Email')
         info["is_duplicated"] = st.radio(
             'Duplicated Fixture?', YES_NO, index=1, horizontal=True)
+        info["fixure_type"] = st.radio(
+            'Fixture Type', FIXTURE_TYPES, horizontal=True)
 
     info["inline_bottom_side"] = st.text_input(
         'For InLine systems, which is the bottom side')
-    
+
     st.header('Upload Files')
-    uploaded_files = st.file_uploader("Upload your files to share with us.", accept_multiple_files=True)
-        
+    uploaded_files = st.file_uploader(
+        "Upload your files to share with us.", accept_multiple_files=True)
+
     # Sección 2: Preferencias|
     st.header("Feature Fixture")
 
@@ -233,9 +180,20 @@ with st.form(key='ict_assesment'):
     st.markdown("<h4>Comentarios Adicionales</h4>", unsafe_allow_html=True)
     comments = st.text_area(
         label_visibility='hidden', label="a", placeholder='Escribe tus comentarios aquí...')
-    
+
     info["additional_comments"] = comments
-    
+    st.markdown("""
+        <style>
+            .stButton>button {
+                width: 100%;  /* Full width */
+                background-color: #4CAF50; /* Green */
+                color: white;
+                font-size: 38px;
+                border-radius: 10px;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
     # Botón de envío
     enviar = st.form_submit_button(
         'Enviar', help='Enviar el formulario', type='primary')
@@ -249,51 +207,54 @@ with st.form(key='ict_assesment'):
             for error in errors_validation:
                 st.error(error)
         else:
-            
+
             #
-            #Create the folder for the opportunity information    
-            #Only if all needed fields are filled
-            UPLOAD_FILES_PATH = os.path.join(PATH_FILE, f"{info['project_name']}_{current_datetime}")
-            os.makedirs(UPLOAD_FILES_PATH, exist_ok=True)
-        
+            # Create the folder for the opportunity information
+            # Only if all needed fields are filled
             try:
+                country = info.get("country", "Mexico")
+                UPLOAD_FILES_FOLDER = os.path.join(PATH_FILE, COUNTRIES_DICT[country], f"{info['project_name']}")
+                
+                if os.path.exists(UPLOAD_FILES_FOLDER):
+                    st.error(f"Oppotunity with name {info['project_name']} already created, please contact Sales Manager to update your requirement.")
+                    st.stop()
+                    
+                os.makedirs(UPLOAD_FILES_FOLDER, exist_ok=True)
+                shutil.copytree(TEMPLATE_ICT, UPLOAD_FILES_FOLDER, dirs_exist_ok=True)
+                
                 # PATH = f"C:/Users/c_ang/Innovative Board Test SAPI de CV/admin - iBtest Assesment/ict_assesment_{current_datetime}.json"
-                #PATH =  f"{PATH_FILE}/ict_assesment_{current_datetime}.json"
-                PATH = os.path.join(UPLOAD_FILES_PATH, "ICT_Assesment.json")
+                # PATH =  f"{PATH_FILE}/ict_assesment_{current_datetime}.json"
+                ALL_INFO_SHARED_PATH = os.path.join(UPLOAD_FILES_FOLDER, "1_Customer_Info", "7_ALL_Info_Shared")
+                PATH = os.path.join(UPLOAD_FILES_FOLDER, "ICT_Assesment.json")
                 with open(PATH, 'w') as file:
                     json.dump(info, file, indent=4)
-                    
+
                 html_data = json_to_html(info)
                 if html_data:
-                    PATH_HTML = os.path.join(UPLOAD_FILES_PATH, "ICT_Assesment.html")
+                    PATH_HTML = os.path.join(UPLOAD_FILES_FOLDER, "ICT_Assesment.html")
                     with open(PATH_HTML, 'w') as file:
                         file.write(html_data)
 
                 opportunity_name = info["project_name"]
                 stage_name = "New Request"
-
+                
                 new_opp = {
                     "Name": opportunity_name,
                     "StageName": stage_name,
-                    "CloseDate": datetime.now().strftime("%Y-%m-%d"),
+                    "CloseDate": get_last_weekday_of_next_month().strftime("%Y-%m-%d"),
                     "Assessment_Date__c": datetime.now().strftime("%Y-%m-%d"),
                     "Path__c": config("PATH_TO_SHAREPOINT")
                 }
-                
-                
+
                 if uploaded_files:
-                    #st.write(f"Subido: {uploaded_files}")
-                    
-                    for file in uploaded_files: 
-                        #st.write(f"Subido: {file.name}")
-                        save_path = os.path.join(UPLOAD_FILES_PATH, file.name)
+                    for file in uploaded_files:
+                        save_path = os.path.join(ALL_INFO_SHARED_PATH, file.name)
                         with open(save_path, "wb") as f:
                             f.write(file.getbuffer())
-                                
-                        #st.success((f"File saved successfully in {save_path}"))
-
+                            
+                #raise ValueError("Not uploaded to salesforce yet")
                 st.write(new_opp)
-                result = {}  # sf.__getattr__('Opportunity').create(new_opp)
+                result =  st.session_state.salesforce.__getattr__('Opportunity').create(new_opp)
                 result["success"] = True
 
                 if result['success']:
