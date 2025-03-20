@@ -8,8 +8,32 @@ from pages.lib.dates_info import *
 import streamlit as st
 from decouple import config
 from datetime import datetime
+from PIL import Image
 
 st.set_page_config(initial_sidebar_state="collapsed")
+st.markdown("""
+    <style>
+        /* Cambiar el fondo de la página */
+        body {
+            background-color: #f0faf9 !important; /* Color gris claro */
+        }
+
+        /* Opcional: cambiar el color de fondo del contenedor principal */
+        [data-testid="stAppViewContainer"] {
+            background-color: #f0faf9 !important;
+        }
+
+        /* Asegurar que los formularios mantengan su color por defecto */
+        div[data-testid="stForm"] {
+            background-color: white !important;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+
 
 # Store a variable in session_state
 if "salesforce" not in st.session_state:
@@ -36,6 +60,8 @@ def validate_fields(fields):
     return []
 
 # Título de la aplicación
+logo = Image.open("./logo_ibtest.png")
+st.image(logo, width=150)
 st.title("In Circuit Test Assesment")
 
 info = dict()
@@ -183,16 +209,28 @@ with st.form(key='ict_assesment'):
 
     info["additional_comments"] = comments
     st.markdown("""
-        <style>
-            .stButton>button {
-                width: 100%;  /* Full width */
-                background-color: #4CAF50; /* Green */
-                color: white;
-                font-size: 38px;
-                border-radius: 10px;
-            }
-        </style>
-    """, unsafe_allow_html=True)
+    <style>
+        /* Modificar específicamente el botón del formulario */
+        div[data-testid="stForm"] button {
+            background-color: #16337d !important; /* Naranja */
+            color: white !important;
+            border-radius: 5px;
+            border: 2px solid #16337d;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+         
+            height: 30px;
+        }
+
+        /* Efecto hover para el botón */
+        div[data-testid="stForm"] button:hover {
+            background-color: #00072d !important; /* Color más oscuro al pasar el mouse */
+            border-color: #00072d;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
     # Botón de envío
     enviar = st.form_submit_button(
