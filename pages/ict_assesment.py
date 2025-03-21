@@ -1,44 +1,39 @@
 import json
 import os
 import shutil
-from pages.lib.ict_create_html import *
-from pages.lib.constants import *
-from pages.lib.salesforce_access import *
-from pages.lib.dates_info import *
+from pages.utils.ict_create_html import *
+from pages.utils.constants import *
+from pages.utils.salesforce_access import *
+from pages.utils.dates_info import *
+from pages.utils.test_account_names import *
+from pages.utils.global_styles import *
+
 import streamlit as st
 from decouple import config
 from datetime import datetime
 from PIL import Image
 
 st.set_page_config(initial_sidebar_state="collapsed")
-st.markdown("""
-    <style>
-        /* Cambiar el fondo de la página */
-        body {
-            background-color: #f0faf9 !important; /* Color gris claro */
-        }
 
-        /* Opcional: cambiar el color de fondo del contenedor principal */
-        [data-testid="stAppViewContainer"] {
-            background-color: #f0faf9 !important;
-        }
-
-        /* Asegurar que los formularios mantengan su color por defecto */
-        div[data-testid="stForm"] {
-            background-color: white !important;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-
+set_global_styles()
 
 # Store a variable in session_state
 if "salesforce" not in st.session_state:
     st.session_state.salesforce = connect_to_salesforce()
 
+def validate_email(mail):
+    
+    invalid_email_found = False
+    for email in INVALID_EMAILS:
+        if email in mail:
+            print("Correo Inválido")
+            invalid_email_found = True
+            return False
+        
+    if not invalid_email_found:
+        print("Correo Válido")
+        return True
+    
 def validate_fields(fields):
     required_fields = ["project_name",
                        "contact_name",
@@ -59,9 +54,7 @@ def validate_fields(fields):
 
     return []
 
-# Título de la aplicación
-logo = Image.open("./logo_ibtest.png")
-st.image(logo, width=150)
+load_ibtest_logo()
 st.title("In Circuit Test Assesment")
 
 info = dict()
@@ -76,9 +69,10 @@ with st.form(key='ict_assesment'):
         info["contact_name"] = st.text_input(
             'Contact', placeholder="Enter your name")
         info['country'] = st.selectbox('Country', options=COUNTRIES_DICT.keys())
-        info["customer_name"] = st.text_input(
-            'Customer Name or Plant', placeholder="Enter the name of the customer or Plant", )
+        #info["customer_name"] = st.text_input(
+        #    'Customer Name or Plant', placeholder="Enter the name of the customer or Plant", )
         #st.selectbox("Accounts", options=ACCOUTS, index=None )
+        info["customer_name"] = st.selectbox("Accounts", options=get_account_names_from_local_file(), index=None)
         
         info["contact_phone"] = st.text_input(
             'Phone Number', placeholder="Enter your phone number")
@@ -88,6 +82,7 @@ with st.form(key='ict_assesment'):
         info["contact_email"] = st.text_input('Email')
         info["is_duplicated"] = st.radio(
             'Duplicated Fixture?', YES_NO, index=1, horizontal=True)
+        info["customer_name2"] = st.text_input('If Account does not exist, write here', placeholder="Enter Customer name")
         info["fixure_type"] = st.radio(
             'Fixture Type', FIXTURE_TYPES, horizontal=True)
 
@@ -98,6 +93,13 @@ with st.form(key='ict_assesment'):
     uploaded_files = st.file_uploader(
         "Upload your files to share with us.", accept_multiple_files=True)
 
+    st.markdown('<p style="margin-bottom: 2px;">CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">Gerber files</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">Schematics (pdf)</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">Test Spec (pdf, doc)"</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">Board directory (.tar.gz, .tar)</p>', unsafe_allow_html=True)
+
+    
     # Sección 2: Preferencias|
     st.header("Feature Fixture")
 
@@ -203,43 +205,25 @@ with st.form(key='ict_assesment'):
             'Travel (Indicate the place to delivery)')
 
     # Sección 3: Comentarios Adicionales
-    st.markdown("<h4>Comentarios Adicionales</h4>", unsafe_allow_html=True)
+    st.markdown("<h4>Additional Comments</h4>", unsafe_allow_html=True)
     comments = st.text_area(
-        label_visibility='hidden', label="a", placeholder='Escribe tus comentarios aquí...')
+        label_visibility='hidden', label="a", placeholder='Write your comments here...')
 
     info["additional_comments"] = comments
-    st.markdown("""
-    <style>
-        /* Modificar específicamente el botón del formulario */
-        div[data-testid="stForm"] button {
-            background-color: #16337d !important; /* Naranja */
-            color: white !important;
-            border-radius: 5px;
-            border: 2px solid #16337d;
-            padding: 10px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-         
-            height: 30px;
-        }
-
-        /* Efecto hover para el botón */
-        div[data-testid="stForm"] button:hover {
-            background-color: #00072d !important; /* Color más oscuro al pasar el mouse */
-            border-color: #00072d;
-        }
-    </style>
-""", unsafe_allow_html=True)
 
     # Botón de envío
     enviar = st.form_submit_button(
-        'Enviar', help='Enviar el formulario', type='primary')
+        'Submit', help='Sumbit form', type='primary')
 
     # Acciones al enviar el formulario
     if enviar:
 
         current_datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
+        valid_email = validate_email(info['contact_email'])
+        if not valid_email:
+            st.error("Error!! Only Corporate emails are valid")
+            st.stop()
+        
         errors_validation = validate_fields(info)
         if errors_validation:
             for error in errors_validation:
@@ -251,8 +235,10 @@ with st.form(key='ict_assesment'):
             # Only if all needed fields are filled
             try:
                 country = info.get("country", "Mexico")
-                UPLOAD_FILES_FOLDER = os.path.join(PATH_FILE, COUNTRIES_DICT[country], f"{info['project_name']}")
+                if info["customer_name"] == "Other":
+                    info["customer_name"] = info["customer_name2"]
                 
+                UPLOAD_FILES_FOLDER = os.path.join(PATH_FILE, COUNTRIES_DICT[country], f"{info['customer_name']}", f"{info['project_name']}")
                 if os.path.exists(UPLOAD_FILES_FOLDER):
                     st.error(f"Oppotunity with name {info['project_name']} already created, please contact Sales Manager to update your requirement.")
                     st.stop()

@@ -1,16 +1,19 @@
 import json
 import os
 import shutil
-from pages.lib.iat_create_html import *
-from pages.lib.constants import *
-from pages.lib.salesforce_access import *
-from pages.lib.dates_info import *
+from pages.utils.iat_create_html import *
+from pages.utils.constants import *
+from pages.utils.salesforce_access import *
+from pages.utils.test_account_names import *
+from pages.utils.dates_info import *
+from pages.utils.global_styles import *
 
 import streamlit as st
 from decouple import config
 from datetime import datetime
 
 st.set_page_config(initial_sidebar_state="collapsed")
+set_global_styles()
 
 IAT_TEMPLATE_FOLDER = "4_Industrial Automation (IAT)"
 
@@ -18,6 +21,19 @@ IAT_TEMPLATE_FOLDER = "4_Industrial Automation (IAT)"
 if "salesforce" not in st.session_state:
     st.session_state.salesforce = connect_to_salesforce()
 
+def validate_email(mail):
+    
+    invalid_email_found = False
+    for email in INVALID_EMAILS:
+        if email in mail:
+            print("Correo Inválido")
+            invalid_email_found = True
+            return False
+        
+    if not invalid_email_found:
+        print("Correo Válido")
+        return True
+    
 def validate_fields(fields):
     required_fields = ["project_name",
                        "contact_name",
@@ -38,6 +54,7 @@ def validate_fields(fields):
     return []
 
 # Título de la aplicación
+load_ibtest_logo()
 st.title(":mechanical_arm: Industrial Automation Test Assesment")
 
 info = dict()
@@ -60,6 +77,7 @@ with st.form(key='iat_assessment'):
     with col1:
         info["contact_name"] = st.text_input(
             'Contact Name', placeholder="Enter your name")
+        info["customer_name"] = st.selectbox("Accounts", options=get_account_names_from_local_file(), index=None)
         info['country'] = st.selectbox('Country', options=COUNTRIES_DICT.keys())
         
         info["contact_phone"] = st.text_input(
@@ -70,8 +88,9 @@ with st.form(key='iat_assessment'):
     with col2:
         info["contact_email"] = st.text_input(
             'Email', placeholder='Enter your email address')
-        info["customer_name"] = st.text_input(
-            'Customer Name or Plant', placeholder="Enter the name of the customer or Plant", )
+        #info["customer_name"] = st.text_input(
+        #    'Customer Name or Plant', placeholder="Enter the name of the customer or Plant", )
+        info["customer_name2"] = st.text_input('If Account does not exist, write here', placeholder="Enter Customer name")
         info["cad_files_and_program"] = st.radio(
             "If it's Duplicated, Do you have the CAD and PLC Program files?", YES_NO, index=1, horizontal=True)
 
@@ -176,6 +195,14 @@ with st.form(key='iat_assessment'):
     st.header('Upload Files')
     uploaded_files = st.file_uploader(
         "Upload your files to share with us.", accept_multiple_files=True)
+    
+    st.markdown('<p style="margin-bottom: 2px;">CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">Drawings (2d, 3d)</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">Gerber files</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">PLC, HMI, Robot programming standards (Templates)</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">Test Spec (pdf, doc)"</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">Product Spec.</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">Product manufacturing sheet.</p>', unsafe_allow_html=True)
 
     # Sección 2: Preferencias|
     st.markdown("<h4>Additional Comments</h4>", unsafe_allow_html=True)
@@ -186,15 +213,21 @@ with st.form(key='iat_assessment'):
     info["travel"] = st.text_input("Travel (Indicate the place of Delivery).")
     info["entity_po"] = st.text_input("Entity from which PO will come:")
 
-    comments = st.text_area(label="Additional Comments", placeholder='Escribe tus comentarios aquí...')
+    comments = st.text_area(label="Additional Comments", placeholder='Write your comments here...')
     info["additional_comments"] = comments
-
+    
     # Botón de envío
-    enviar = st.form_submit_button('Enviar', help='Enviar el formulario', type='primary')
+    enviar = st.form_submit_button('Submit', help='Submit form', type='primary')
 
     # Acciones al enviar el formulario
     if enviar:
         current_datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        valid_email = validate_email(info['contact_email'])
+        if not valid_email:
+            st.error("Error!! Only Corporate emails are valid")
+            st.stop()
+            
         errors_validation = validate_fields(info)
         if errors_validation:
             for error in errors_validation:
@@ -206,8 +239,10 @@ with st.form(key='iat_assessment'):
             try:
                 
                 country = info.get("country", "Mexico")
-                UPLOAD_FILES_FOLDER = os.path.join(PATH_FILE, COUNTRIES_DICT[country], f"{info['project_name']}")
-                
+                if info["customer_name"] == "Other":
+                    info["customer_name"] = info["customer_name2"]
+                    
+                UPLOAD_FILES_FOLDER = os.path.join(PATH_FILE, COUNTRIES_DICT[country], f"{info['customer_name']}", f"{info['project_name']}")
                 if os.path.exists(UPLOAD_FILES_FOLDER):
                     st.error(f"Oppotunity with name {info['project_name']} already created, please contact Sales Manager to update your requirement.")
                     st.stop()
