@@ -238,13 +238,13 @@ with st.form(key='ict_assesment'):
                 if info["customer_name"] == "Other":
                     info["customer_name"] = info["customer_name2"]
                 
-                UPLOAD_FILES_FOLDER = os.path.join(PATH_FILE, COUNTRIES_DICT[country], f"{info['customer_name']}", f"{info['project_name']}")
+                UPLOAD_FILES_FOLDER = os.path.join(config("PATH_FILE"), COUNTRIES_DICT[country], f"{info['customer_name']}", f"{info['project_name']}")
                 if os.path.exists(UPLOAD_FILES_FOLDER):
                     st.error(f"Oppotunity with name {info['project_name']} already created, please contact Sales Manager to update your requirement.")
                     st.stop()
-                    
+                
                 os.makedirs(UPLOAD_FILES_FOLDER, exist_ok=True)
-                shutil.copytree(TEMPLATE_ICT, UPLOAD_FILES_FOLDER, dirs_exist_ok=True)
+                shutil.copytree(config("TEMPLATE_ICT"), UPLOAD_FILES_FOLDER, dirs_exist_ok=True)
                 
                 # PATH = f"C:/Users/c_ang/Innovative Board Test SAPI de CV/admin - iBtest Assesment/ict_assesment_{current_datetime}.json"
                 # PATH =  f"{PATH_FILE}/ict_assesment_{current_datetime}.json"
@@ -277,6 +277,7 @@ with st.form(key='ict_assesment'):
                             f.write(file.getbuffer())
                             
                 #raise ValueError("Not uploaded to salesforce yet")
+            
                 st.write(new_opp)
                 result =  st.session_state.salesforce.__getattr__('Opportunity').create(new_opp)
                 result["success"] = True

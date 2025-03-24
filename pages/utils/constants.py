@@ -30,9 +30,9 @@
 #     SmallExtended = "Small Extended",
 #     LargeExtended = "Large Extended"
 
-TEMPLATE_ICT = "/Users/MyUser/Downloads/TEMPLATE_ICT"
-TEMPLATE_FCT = "/Users/MyUser/Downloads/TEMPLATE_FCT"
-TEMPLATE_IAT = "/Users/MyUser/Downloads/TEMPLATE_IAT"
+#TEMPLATE_ICT = "/Users/c_angel/Downloads/TEMPLATE_ICT"
+#TEMPLATE_FCT = "/Users/c_angel/Downloads/TEMPLATE_FCT"
+#TEMPLATE_IAT = "/Users/c_angel/Downloads/TEMPLATE_IAT"
 
 ICT_PROJECTS_FOLDER = "1_In_Circuit Test (ICT)"
 FCT_PROJECTS_FOLDER = "2_Functional Test (FCT)"
@@ -42,8 +42,8 @@ CUSTOMER_INFO   = "1_Customer_Info"
 ALL_INFO_SHARED = "7_ALL_Info_Shared"
 
 #PATH_FILE = "/Users/c_angel/Library/CloudStorage/OneDrive-Bibliotecascompartidas:InnovativeBoardTestSAPIdeCV/admin - iBtest Assesment/"
-PATH_FILE = "C:/Users/MyUser/OneDrive - Innovative Board Test SAPI de CV/iBtest Assesment"
-PATH_FILE_Q = "/Users/c_angel/OneDrive - Innovative Board Test SAPI de CV/01_2025"
+#PATH_FILE = "C:/Users/MyUser/OneDrive - Innovative Board Test SAPI de CV/iBtest Assesment"
+#PATH_FILE_Q = "/Users/c_angel/OneDrive - Innovative Board Test SAPI de CV/01_2025"
 
 YES_NO = ['Yes', 'No']
 

@@ -242,13 +242,13 @@ with st.form(key='iat_assessment'):
                 if info["customer_name"] == "Other":
                     info["customer_name"] = info["customer_name2"]
                     
-                UPLOAD_FILES_FOLDER = os.path.join(PATH_FILE, COUNTRIES_DICT[country], f"{info['customer_name']}", f"{info['project_name']}")
+                UPLOAD_FILES_FOLDER = os.path.join(config("PATH_FILE"), COUNTRIES_DICT[country], f"{info['customer_name']}", f"{info['project_name']}")
                 if os.path.exists(UPLOAD_FILES_FOLDER):
                     st.error(f"Oppotunity with name {info['project_name']} already created, please contact Sales Manager to update your requirement.")
                     st.stop()
                     
                 os.makedirs(UPLOAD_FILES_FOLDER, exist_ok=True)
-                shutil.copytree(TEMPLATE_IAT, UPLOAD_FILES_FOLDER, dirs_exist_ok=True)
+                shutil.copytree(config("TEMPLATE_IAT"), UPLOAD_FILES_FOLDER, dirs_exist_ok=True)
                 
                 # PATH = f"C:/Users/c_ang/Innovative Board Test SAPI de CV/admin - iBtest Assesment/ict_assesment_{current_datetime}.json"
                 # PATH =  f"{PATH_FILE}/ict_assesment_{current_datetime}.json"
