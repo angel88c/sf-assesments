@@ -48,3 +48,36 @@ def connect_to_salesforce():
     except Exception as e:
         st.error(f"Error al conectar a Salesforce: {e}")
         return None
+
+@st.cache_resource
+def get_unique_account_dict():
+    
+    sf = st.session_state.salesforce
+    
+    if sf is None:
+        return {}
+    
+    accounts_dict = {}
+    seen_names = set()
+    
+    try:
+        
+        query = "SELECT Id, Name from Account order by Name ASC"
+        result = sf.query(query)
+        
+        for record in result["records"]:
+            name = record["Name"]
+            
+            if name not in seen_names:
+                accounts_dict[record["Id"]] = name
+                seen_names.add(name)
+        
+        
+        if "Other" not in seen_names:
+            accounts_dict["other"] = "Other"
+            
+        return accounts_dict
+        
+    except Exception as e:
+        print(f'Error querying salesforce accounts: {e}')
+        return {"other": "Other"}

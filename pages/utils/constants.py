@@ -90,7 +90,7 @@ IAT_MILESTONES = ['Drawings (2D, 3D) .step files, .cad?',
                   'Product Manufacturing Sheet?',
                   'Traceability?',
                   'Estimated process cycle time?',
-                  'Is any special handling og the unit needed?',
+                  'Is any special handling on the unit needed?',
                   'Do you have samples?']
 
 IAT_STATION_TYPES = ['Select',

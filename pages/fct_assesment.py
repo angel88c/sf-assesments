@@ -58,11 +58,12 @@ st.title("Functional Test Assesment")
 
 info = dict()
 YEAR = str(datetime.today().year)
+BU = "FCT"
 
 # Crear un formulario
 with st.form(key='fct_assesment'):
-    # Sección 1: Información Personal
-    # st.header("Contact Information")
+    
+    all_accounts = get_unique_account_dict()
 
     col1, col2 = st.columns(2)
     with col1:
@@ -71,7 +72,9 @@ with st.form(key='fct_assesment'):
         info["contact_name"] = st.text_input(
             'Contact', placeholder="Enter your name")
         info["contact_email"] = st.text_input('Email')
-        info["customer_name"] = st.selectbox("Accounts", options=get_account_names_from_local_file(), index=None)
+        
+        accounts_by_name = {name: id for id, name in all_accounts.items()}
+        info["customer_name"] = st.selectbox("Company name", options=list(accounts_by_name.keys()), index=None)
         info['country'] = st.selectbox('Country', options=COUNTRIES_DICT.keys())
         info["is_duplicated"] = st.radio('Duplicated Project?', YES_NO, index=1, horizontal=True)
 
@@ -84,7 +87,7 @@ with st.form(key='fct_assesment'):
 
         info["contact_phone"] = st.text_input(
             'Phone Number', placeholder="Enter your phone number")
-        info["customer_name2"] = st.text_input('If Account does not exist, write here', placeholder="Enter Customer name")
+        info["customer_name2"] = st.text_input('If Customer name not in list, write it here', placeholder="Enter Customer name")
         
     st.header('Upload Files')
     uploaded_files = st.file_uploader(
@@ -152,7 +155,7 @@ with st.form(key='fct_assesment'):
         info["qty_microstrains"] = st.text_input("How many uS (microstrains)?")
 
     with col2:
-        info["rosettes"] = st.text_input("How mmany Rosettes?")
+        info["rosettes"] = st.text_input("How many Rosettes?")
 
     info["fixture_needs"] = st.text_area("Describe the needs of the Fixture:")
 
@@ -247,9 +250,11 @@ with st.form(key='fct_assesment'):
             #
             try:
                 country = info.get("country", "Mexico")
-                if info["customer_name"] == "Other":
+                customer_in_list = True
+                if info["customer_name"] is None or info["customer_name"] == "Other":
                     info["customer_name"] = info["customer_name2"]
-                
+                    customer_in_list = False
+
                 UPLOAD_FILES_FOLDER = os.path.join(config("PATH_FILE"), COUNTRIES_DICT[country], f"{info['customer_name']}", f"{info['project_name']}")
                 
                 if os.path.exists(UPLOAD_FILES_FOLDER):
@@ -262,9 +267,9 @@ with st.form(key='fct_assesment'):
                 # PATH = f"C:/Users/c_ang/Innovative Board Test SAPI de CV/admin - iBtest Assesment/ict_assesment_{current_datetime}.json"
                 # PATH =  f"{PATH_FILE}/ict_assesment_{current_datetime}.json"
                 ALL_INFO_SHARED_PATH = os.path.join(UPLOAD_FILES_FOLDER, "1_Customer_Info", "3_ALL_Info_Shared")
-                PATH = os.path.join(UPLOAD_FILES_FOLDER, "FCT_Assesment.json")
-                with open(PATH, 'w') as file:
-                    json.dump(info, file, indent=4)
+                #PATH = os.path.join(UPLOAD_FILES_FOLDER, "FCT_Assesment.json")
+                #with open(PATH, 'w') as file:
+                #    json.dump(info, file, indent=4)
 
                 html_data = json_to_html(info)
                 if html_data:
@@ -280,9 +285,13 @@ with st.form(key='fct_assesment'):
                     "StageName": stage_name,
                     "CloseDate": get_last_weekday_of_next_month().strftime("%Y-%m-%d"),
                     "Assessment_Date__c": datetime.now().strftime("%Y-%m-%d"),
-                    "Path__c": config("PATH_TO_SHAREPOINT")
+                    "Path__c": config("PATH_TO_SHAREPOINT"),                        
+                    "BU__c": BU
                 }
-
+                
+                if customer_in_list:
+                    new_opp["AccountId"] = accounts_by_name.get(info["customer_name"], "")
+                    
                 if uploaded_files:
                     for file in uploaded_files:
                         save_path = os.path.join(ALL_INFO_SHARED_PATH, file.name)
@@ -291,7 +300,7 @@ with st.form(key='fct_assesment'):
                 
                 #raise ValueError("Not sending to salesforce at moment")
 
-                st.write(new_opp)
+                #st.write(new_opp)
                 result = st.session_state.salesforce.__getattr__('Opportunity').create(new_opp)
                 # result["success"] = True
 

@@ -59,9 +59,14 @@ st.title("In Circuit Test Assesment")
 
 info = dict()
 YEAR = str(datetime.today().year)
+BU = "ICT"
+PROJECTS_FOLDER = ICT_PROJECTS_FOLDER
 
 # Crear un formulario
 with st.form(key='ict_assesment'):
+    
+    all_accounts = get_unique_account_dict()
+    
     col1, col2 = st.columns(2)
     with col1:
         info["project_name"] = st.text_input(
@@ -72,19 +77,17 @@ with st.form(key='ict_assesment'):
         #info["customer_name"] = st.text_input(
         #    'Customer Name or Plant', placeholder="Enter the name of the customer or Plant", )
         #st.selectbox("Accounts", options=ACCOUTS, index=None )
-        info["customer_name"] = st.selectbox("Accounts", options=get_account_names_from_local_file(), index=None)
         
-        info["contact_phone"] = st.text_input(
-            'Phone Number', placeholder="Enter your phone number")
+        accounts_by_name = {name: id for id, name in all_accounts.items()}
+        info["customer_name"] = st.selectbox("Company name", options=list(accounts_by_name.keys()), index=None)
+        info["contact_phone"] = st.text_input('Phone Number', placeholder="Enter your phone number")
        
     with col2:
         info["date"] = st.date_input('Date').strftime("%Y-%m-%d")
         info["contact_email"] = st.text_input('Email')
-        info["is_duplicated"] = st.radio(
-            'Duplicated Fixture?', YES_NO, index=1, horizontal=True)
-        info["customer_name2"] = st.text_input('If Account does not exist, write here', placeholder="Enter Customer name")
-        info["fixure_type"] = st.radio(
-            'Fixture Type', FIXTURE_TYPES, horizontal=True)
+        info["is_duplicated"] = st.radio('Duplicated Fixture?', YES_NO, index=1, horizontal=True)
+        info["customer_name2"] = st.text_input('If Company name not in list, write it here', placeholder="Enter Customer name")
+        info["fixure_type"] = st.radio('Fixture Type', FIXTURE_TYPES, horizontal=True)
 
     info["inline_bottom_side"] = st.text_input(
         'For InLine systems, which is the bottom side')
@@ -217,7 +220,7 @@ with st.form(key='ict_assesment'):
 
     # Acciones al enviar el formulario
     if enviar:
-
+        
         current_datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
         valid_email = validate_email(info['contact_email'])
         if not valid_email:
@@ -235,9 +238,11 @@ with st.form(key='ict_assesment'):
             # Only if all needed fields are filled
             try:
                 country = info.get("country", "Mexico")
-                if info["customer_name"] == "Other":
+                customer_in_list = True
+                if info["customer_name"] is None or info["customer_name"] == "Other":
                     info["customer_name"] = info["customer_name2"]
-                
+                    customer_in_list = False
+                    
                 UPLOAD_FILES_FOLDER = os.path.join(config("PATH_FILE"), COUNTRIES_DICT[country], f"{info['customer_name']}", f"{info['project_name']}")
                 if os.path.exists(UPLOAD_FILES_FOLDER):
                     st.error(f"Oppotunity with name {info['project_name']} already created, please contact Sales Manager to update your requirement.")
@@ -249,9 +254,9 @@ with st.form(key='ict_assesment'):
                 # PATH = f"C:/Users/c_ang/Innovative Board Test SAPI de CV/admin - iBtest Assesment/ict_assesment_{current_datetime}.json"
                 # PATH =  f"{PATH_FILE}/ict_assesment_{current_datetime}.json"
                 ALL_INFO_SHARED_PATH = os.path.join(UPLOAD_FILES_FOLDER, "1_Customer_Info", "7_ALL_Info_Shared")
-                PATH = os.path.join(UPLOAD_FILES_FOLDER, "ICT_Assesment.json")
-                with open(PATH, 'w') as file:
-                    json.dump(info, file, indent=4)
+                #PATH = os.path.join(UPLOAD_FILES_FOLDER, "ICT_Assesment.json")
+                #with open(PATH, 'w') as file:
+                #    json.dump(info, file, indent=4)
 
                 html_data = json_to_html(info)
                 if html_data:
@@ -267,8 +272,12 @@ with st.form(key='ict_assesment'):
                     "StageName": stage_name,
                     "CloseDate": get_last_weekday_of_next_month().strftime("%Y-%m-%d"),
                     "Assessment_Date__c": datetime.now().strftime("%Y-%m-%d"),
-                    "Path__c": config("PATH_TO_SHAREPOINT")
+                    "Path__c": config("PATH_TO_SHAREPOINT"),                        
+                    "BU__c": BU
                 }
+                
+                if customer_in_list:
+                    new_opp["AccountId"] = accounts_by_name.get(info["customer_name"], "")
 
                 if uploaded_files:
                     for file in uploaded_files:
@@ -277,10 +286,10 @@ with st.form(key='ict_assesment'):
                             f.write(file.getbuffer())
                             
                 #raise ValueError("Not uploaded to salesforce yet")
-            
-                st.write(new_opp)
+        
+                #st.write(new_opp)
                 result =  st.session_state.salesforce.__getattr__('Opportunity').create(new_opp)
-                result["success"] = True
+                #result["success"] = True
 
                 if result['success']:
                     st.success("Opportunity created successfully!")
