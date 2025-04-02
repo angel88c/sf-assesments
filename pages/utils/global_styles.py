@@ -3,7 +3,7 @@ from PIL import Image
 
 def set_global_styles():
     st.markdown("""
-        <style>
+        <style>           
             /* Cambiar el fondo de la página */
             body {
                 background-color: #f0faf9 !important; /* Color gris claro */
@@ -18,7 +18,7 @@ def set_global_styles():
             div[data-testid="stForm"] {
                 background-color: white !important;
                 padding: 20px;
-                border-radius: 10px;
+                border-radius: 15px;
                 box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
             }
             

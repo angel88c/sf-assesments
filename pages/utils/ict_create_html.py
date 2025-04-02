@@ -64,6 +64,7 @@ def contact_section(data):
     return f"""
     <div class="space-y-2">
         <h3 class="text-lg font-semibold text-gray-700">Contact Information</h3>
+        {key_value('Quotation Required Date', data['quotation_required_date'])}
         {key_value('Contact Name', data['contact_name'])}
         {key_value('Phone Number', data['contact_phone'])}
         {key_value('Email Address', data['contact_email'])}

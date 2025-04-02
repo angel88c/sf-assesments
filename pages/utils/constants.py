@@ -1,49 +1,3 @@
-# from enum import Enum
-
-# class YesNo(Enum):
-#     Yes = "Yes",
-#     No = "No"
-
-# class FixtureType(Enum):
-#     Offline = "OffLine",
-#     InLine = "InLine"
-
-# class Options(Enum):
-#     NA = "NA",
-#     Required = "Required",
-#     Optional = "Optional"
-
-# class ActivationTypes(Enum):
-#     VacuumBox = "Vacuum Box",
-#     HoldDownGates = "Hold Down Gates",
-#     Pneumatic = "Pneumatic",
-#     InlineTestFixture = "Inline Test Fixture"
-
-# class WellTypes(Enum):
-#     SingleWell = "Single Well",
-#     DualWell = "Dual Well",
-#     DualStage = "Dual Stage"
-
-# class SizeTypes(Enum):
-#     SmallKit = "Small Kit",
-#     LargeKit = "Large Kit",
-#     SmallExtended = "Small Extended",
-#     LargeExtended = "Large Extended"
-
-#TEMPLATE_ICT = "/Users/c_angel/Downloads/TEMPLATE_ICT"
-#TEMPLATE_FCT = "/Users/c_angel/Downloads/TEMPLATE_FCT"
-#TEMPLATE_IAT = "/Users/c_angel/Downloads/TEMPLATE_IAT"
-
-ICT_PROJECTS_FOLDER = "1_In_Circuit Test (ICT)"
-FCT_PROJECTS_FOLDER = "2_Functional Test (FCT)"
-IAT_PROJECTS_FOLDER = "4_Industrial Automation (IAT)"
-
-CUSTOMER_INFO   = "1_Customer_Info"
-ALL_INFO_SHARED = "7_ALL_Info_Shared"
-
-#PATH_FILE = "/Users/c_angel/Library/CloudStorage/OneDrive-Bibliotecascompartidas:InnovativeBoardTestSAPIdeCV/admin - iBtest Assesment/"
-#PATH_FILE = "C:/Users/MyUser/OneDrive - Innovative Board Test SAPI de CV/iBtest Assesment"
-#PATH_FILE_Q = "/Users/c_angel/OneDrive - Innovative Board Test SAPI de CV/01_2025"
 
 YES_NO = ['Yes', 'No']
 
@@ -65,12 +19,12 @@ SIZE_TYPES = ['Small Kit',
               'Small Extended',
               'Large Extended']
 
-OPTIONS = ['Logistic data will be flashed?',
-           'It has the config file and codeword data of the 3070?',
-           'Do you have Test Spec?',
-           'Do you have Fixture SOW?',
-           'Panel Test? Specify Qty boards on the panel',
-           'Individual test? Specify Nest Qty']
+OPTIONS = ['(*) Logistic data will be flashed?',
+           '(*) It has the config file and codeword data of the 3070?',
+           '(*) Do you have Test Spec?',
+           '(*) Do you have Fixture SOW?',
+           '(*) Panel Test? Specify Qty boards on the panel',
+           '(*) Individual test? Specify Nest Qty']
 
 COUNTRIES_DICT = {'Mexico': 'MX',
                   'USA': 'US',
@@ -82,16 +36,16 @@ COUNTRIES_DICT = {'Mexico': 'MX',
 
 # IAT
 IAT_MILESTONES = ['Drawings (2D, 3D) .step files, .cad?',
-                  'Process Step?',
-                  'Nest?',
-                  'PLC, HMI, Robot programming standards (Templates)?',
-                  'SOW and Ergonomic Specification?',
-                  'Layout?',
-                  'Product Manufacturing Sheet?',
-                  'Traceability?',
-                  'Estimated process cycle time?',
-                  'Is any special handling on the unit needed?',
-                  'Do you have samples?']
+                  r'*Process Spec?',
+                  r'*Nest?',
+                  r'*PLC, HMI, Robot programming standards (Templates)?',
+                  r'*SOW and Ergonomic Specification?',
+                  r'*Layout?',
+                  r'*Product Manufacturing Sheet?',
+                  r'*Traceability?',
+                  r'*Estimated process cycle time?',
+                  r'*Is any special handling on the unit needed?',
+                  r'*Do you have samples?']
 
 IAT_STATION_TYPES = ['Select',
                      'Other',

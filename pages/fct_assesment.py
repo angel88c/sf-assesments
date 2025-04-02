@@ -15,8 +15,6 @@ from datetime import datetime
 st.set_page_config(initial_sidebar_state="collapsed")
 set_global_styles()
 
-FCT_TEMPLATE_FOLDER = "2_Functional Test (FCT)"
-
 # Store a variable in session_state
 if "salesforce" not in st.session_state:
     st.session_state.salesforce = connect_to_salesforce()
@@ -59,24 +57,28 @@ st.title("Functional Test Assesment")
 info = dict()
 YEAR = str(datetime.today().year)
 BU = "FCT"
+PROJECTS_FOLDER = "2_Functional Test (FCT)"
 
 # Crear un formulario
 with st.form(key='fct_assesment'):
     
     all_accounts = get_unique_account_dict()
+    
+    with st.columns([2, 1, 1])[0]:
+        info["quotation_required_date"] = st.date_input('When do you need the quote? Select an ideal date', ).strftime("%Y-%m-%d")
 
     col1, col2 = st.columns(2)
     with col1:
         info["project_name"] = st.text_input(
-            'Name or Project Reference', placeholder="Enter the name of the project", )
+            r'*Name or Project Reference', placeholder="Enter the name of the project", )
         info["contact_name"] = st.text_input(
-            'Contact', placeholder="Enter your name")
-        info["contact_email"] = st.text_input('Email')
+            r'*Contact', placeholder="Enter your name")
+        info["contact_email"] = st.text_input(r'*Email')
         
         accounts_by_name = {name: id for id, name in all_accounts.items()}
-        info["customer_name"] = st.selectbox("Company name", options=list(accounts_by_name.keys()), index=None)
-        info['country'] = st.selectbox('Country', options=COUNTRIES_DICT.keys())
-        info["is_duplicated"] = st.radio('Duplicated Project?', YES_NO, index=1, horizontal=True)
+        info["customer_name"] = st.selectbox(r"*Company name", options=list(accounts_by_name.keys()), index=None)
+        info['country'] = st.selectbox(r'*Country', options=COUNTRIES_DICT.keys())
+        info["is_duplicated"] = st.radio(r'*Duplicated Project?', YES_NO, index=1, horizontal=True)
 
     with col2:
         info["date"] = st.date_input('Date').strftime("%Y-%m-%d")
@@ -93,13 +95,13 @@ with st.form(key='fct_assesment'):
     uploaded_files = st.file_uploader(
         "Upload your files to share with us.", accept_multiple_files=True)
 
-    st.markdown('<p style="margin-bottom: 2px;">CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">Gerber files</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">Schematics (pdf)</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">Test Spec (pdf, doc)"</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">BOMS</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">SOW</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">Drawings (2d, 3d)</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">*CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">*Gerber files</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">*Schematics (pdf)</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">*Test Spec (pdf, doc)"</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">*BOMS</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">*SOW</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">*Drawings (2d, 3d)</p>', unsafe_allow_html=True)
 
     # Sección 2: Preferencias|
     # st.header("Required Internal Departments")
@@ -117,15 +119,15 @@ with st.form(key='fct_assesment'):
 
     col1, col2 = st.columns([1, 1.5])
     with col1:
-        info['cad_files'] = st.radio('CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)', horizontal=True, options=YES_NO)
-        info['gerber_files'] = st.radio('Gerber Files', horizontal=True, options=YES_NO)
-        info['schematics'] = st.radio('schematics', horizontal=True, options=YES_NO)
-        info['boms'] = st.radio('BOMs of each version', horizontal=True, options=YES_NO)
-        info['traceability_system'] = st.radio( 'Trazability System', horizontal=True, options=YES_NO)
-        info['sow'] = st.radio('SOW', horizontal=True, options=YES_NO)
-        info["product_finish"] = st.selectbox("Specify how the product will be test", FCT_PRODUCT_FINISH)
-        info["test_strategy"] = st.selectbox("Test strategy", FCT_TEST_STRATEGIES)
-        info["connection_interface"] = st.selectbox("Connection Interface", FCT_CONNECTION_INTERFACES)
+        info['cad_files'] = st.radio(r'*CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)', horizontal=True, options=YES_NO)
+        info['gerber_files'] = st.radio(r'*Gerber Files', horizontal=True, options=YES_NO)
+        info['schematics'] = st.radio(r'*Schematics', horizontal=True, options=YES_NO)
+        info['boms'] = st.radio(r'*BOMs of each version', horizontal=True, options=YES_NO)
+        info['traceability_system'] = st.radio( r'*Trazability System', horizontal=True, options=YES_NO)
+        info['sow'] = st.radio(r'*SOW', horizontal=True, options=YES_NO)
+        info["product_finish"] = st.selectbox(r"*Specify how the product will be test", FCT_PRODUCT_FINISH)
+        info["test_strategy"] = st.selectbox(r"*Test strategy", FCT_TEST_STRATEGIES)
+        info["connection_interface"] = st.selectbox(r"*Connection Interface", FCT_CONNECTION_INTERFACES)
     with col2:
         info['drawings'] = st.radio('Drawings (2D, 3D)', horizontal=True, options=YES_NO)
         info['test_spec'] = st.radio('Test Spec', horizontal=True, options=YES_NO)
@@ -140,7 +142,7 @@ with st.form(key='fct_assesment'):
         info['osp_finish'] = st.radio(
             'In the case of PCB, Does the product have OSP finish on TPs?', horizontal=True, index=1, options=YES_NO)
 
-        info['quantity_uut'] = st.number_input("How many units under test?", min_value=0, value=0)
+        info['quantity_uut'] = st.number_input(r"*How many units under test?", min_value=0, value=0)
         info["fixture_vendor"] = st.selectbox("Fixture Vendor required (if apply):", FCT_FIXTURE_VENDORS)
 
     st.divider()
@@ -148,7 +150,7 @@ with st.form(key='fct_assesment'):
 
 
     info["studies_necessaries"] = st.multiselect(
-        label="Select the studies necessaries (MSA, GRR...)", options=FCT_STUDIES_OPTIONS)
+        label=r"*Select the studies necessaries (MSA, GRR...)", options=FCT_STUDIES_OPTIONS)
 
     col1, col2 = st.columns(2)
     with col1:
@@ -169,9 +171,9 @@ with st.form(key='fct_assesment'):
 
     with col1:
         info["hardware_option"] = st.selectbox("Preferent Hardware", FCT_HARDWARE_OPTIONS)
-        info["system_type"] = st.selectbox("System Type", FCT_SYSTEM_TYPES)
-        info["station_type"] = st.selectbox("Station Type", FCT_STATION_TYPES)
-        info["process_type"] = st.selectbox("Process Type:", FCT_PROCESS_TYPES)
+        info["system_type"] = st.selectbox(r"*System Type", FCT_SYSTEM_TYPES)
+        info["station_type"] = st.selectbox(r"*Station Type", FCT_STATION_TYPES)
+        info["process_type"] = st.selectbox(r"*Process Type:", FCT_PROCESS_TYPES)
 
     with col2:
         info["dm_position"] = st.text_area(
@@ -185,7 +187,7 @@ with st.form(key='fct_assesment'):
             'Does the customer want to make modifications to the system or test procedure by himself??', YES_NO, index=1, horizontal=True)
 
     with col2:
-        info["test_sequencer"] = st.selectbox("Test Sequencer", [
+        info["test_sequencer"] = st.selectbox(r"*Test Sequencer", [
                                               "Select Option", "LabView", "TestStand", "CVI", "TestExec", "Other"])
 
     st.divider()
@@ -193,8 +195,8 @@ with st.form(key='fct_assesment'):
                 unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
-        info["dimensions"] = st.radio("Expected dimensions for the testing system (limited space, height)?", YES_NO, horizontal=True, index=1)
-        info["test_execution_conditions"] = st.radio("Test Execution under specific conditions (High/Low Temperature, Humidity,control cabin or chamber, etc.)?", YES_NO, horizontal=True, index=1)
+        info["dimensions"] = st.radio(r"*Expected dimensions for the testing system (limited space, height)?", YES_NO, horizontal=True, index=1)
+        info["test_execution_conditions"] = st.radio(r"*Test Execution under specific conditions (High/Low Temperature, Humidity,control cabin or chamber, etc.)?", YES_NO, horizontal=True, index=1)
 
     with col2:
         info["dimensions_spec"] = st.text_input(label=".", placeholder="Specify", key="dim_spec")
@@ -207,11 +209,11 @@ with st.form(key='fct_assesment'):
     col1, col2 = st.columns(2)
     with col1:
         info["single_product"] = st.radio(
-            "The System will only be used for a single product or different products?", YES_NO, horizontal=True, index=1)
+            r"*The System will only be used for a single product or different products?", YES_NO, horizontal=True, index=1)
         info["self_test_required"] = st.radio(
-            "Self-Test required for product and testing system?", YES_NO, horizontal=True, index=1)
+            r"*Self-Test required for product and testing system?", YES_NO, horizontal=True, index=1)
         info["certification_required"] = st.radio(
-            "Certifications Required?", YES_NO, horizontal=True, index=1)
+            r"*Certifications Required?", YES_NO, horizontal=True, index=1)
 
     with col2:
         info["single_product_info"] = st.text_input(
@@ -227,6 +229,8 @@ with st.form(key='fct_assesment'):
 
         # Sección 3: Comentarios Adicionales
     st.markdown("<h4>Additional Comments</h4>", unsafe_allow_html=True)
+    info["travel"] = st.text_input(r"*Travel (Indicate the place of Delivery).")
+    info["entity_po"] = st.text_input(r"*Entity from which PO will come:")
     info["additional_comments"] = st.text_area(label="Additional Comments")
     
     # Botón de envío
@@ -255,7 +259,12 @@ with st.form(key='fct_assesment'):
                     info["customer_name"] = info["customer_name2"]
                     customer_in_list = False
 
-                UPLOAD_FILES_FOLDER = os.path.join(config("PATH_FILE"), COUNTRIES_DICT[country], f"{info['customer_name']}", f"{info['project_name']}")
+                #UPLOAD_FILES_FOLDER = os.path.join(config("PATH_FILE"), COUNTRIES_DICT[country], f"{info['customer_name']}", f"{info['project_name']}")
+                UPLOAD_FILES_FOLDER = os.path.join(config("PATH_FILE"),
+                                                   PROJECTS_FOLDER, 
+                                                   COUNTRIES_DICT[country], 
+                                                   f"{info['customer_name']}",
+                                                   f"{info['project_name']}")
                 
                 if os.path.exists(UPLOAD_FILES_FOLDER):
                     st.error(f"Oppotunity with name {info['project_name']} already created, please contact Sales Manager to update your requirement.")
@@ -298,9 +307,10 @@ with st.form(key='fct_assesment'):
                         with open(save_path, "wb") as f:
                             f.write(file.getbuffer())
                 
+                
+                #st.write(new_opp)
                 #raise ValueError("Not sending to salesforce at moment")
 
-                #st.write(new_opp)
                 result = st.session_state.salesforce.__getattr__('Opportunity').create(new_opp)
                 # result["success"] = True
 

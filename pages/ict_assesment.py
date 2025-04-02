@@ -60,34 +60,37 @@ st.title("In Circuit Test Assesment")
 info = dict()
 YEAR = str(datetime.today().year)
 BU = "ICT"
-PROJECTS_FOLDER = ICT_PROJECTS_FOLDER
+PROJECTS_FOLDER = "1_In_Circuit Test (ICT)"
 
 # Crear un formulario
 with st.form(key='ict_assesment'):
     
     all_accounts = get_unique_account_dict()
     
+    st.write("(*) Mandatory Fields")
+    
     col1, col2 = st.columns(2)
     with col1:
         info["project_name"] = st.text_input(
-            'Name or Project Reference', placeholder="Enter the name of the project", )
+            r'\* Name or Project Reference', placeholder="Enter the name of the project", )
         info["contact_name"] = st.text_input(
-            'Contact', placeholder="Enter your name")
-        info['country'] = st.selectbox('Country', options=COUNTRIES_DICT.keys())
+            r'\* Contact Name', placeholder="Enter your name")
+        info['country'] = st.selectbox(r'*Country', options=COUNTRIES_DICT.keys())
         #info["customer_name"] = st.text_input(
         #    'Customer Name or Plant', placeholder="Enter the name of the customer or Plant", )
         #st.selectbox("Accounts", options=ACCOUTS, index=None )
         
         accounts_by_name = {name: id for id, name in all_accounts.items()}
-        info["customer_name"] = st.selectbox("Company name", options=list(accounts_by_name.keys()), index=None)
+        info["customer_name"] = st.selectbox(r"*Company name", options=list(accounts_by_name.keys()), index=None)
         info["contact_phone"] = st.text_input('Phone Number', placeholder="Enter your phone number")
        
     with col2:
-        info["date"] = st.date_input('Date').strftime("%Y-%m-%d")
-        info["contact_email"] = st.text_input('Email')
-        info["is_duplicated"] = st.radio('Duplicated Fixture?', YES_NO, index=1, horizontal=True)
+        info["date"] = datetime.today().strftime("%Y-%m-%d")
+        info["quotation_required_date"] = st.date_input('When do you need the quote? Select an ideal date', ).strftime("%Y-%m-%d")
+        info["contact_email"] = st.text_input(r'*Email')
+        info["is_duplicated"] = st.radio(r'*Duplicated Fixture?', YES_NO, index=1, horizontal=True)
         info["customer_name2"] = st.text_input('If Company name not in list, write it here', placeholder="Enter Customer name")
-        info["fixure_type"] = st.radio('Fixture Type', FIXTURE_TYPES, horizontal=True)
+        info["fixure_type"] = st.radio(r'*Fixture Type', FIXTURE_TYPES, horizontal=True)
 
     info["inline_bottom_side"] = st.text_input(
         'For InLine systems, which is the bottom side')
@@ -96,24 +99,23 @@ with st.form(key='ict_assesment'):
     uploaded_files = st.file_uploader(
         "Upload your files to share with us.", accept_multiple_files=True)
 
-    st.markdown('<p style="margin-bottom: 2px;">CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">Gerber files</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">Schematics (pdf)</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">Test Spec (pdf, doc)"</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">Board directory (.tar.gz, .tar)</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">*CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">*Gerber files</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">*Schematics (pdf)</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">*Test Spec (pdf, doc)"</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 2px;">*Board directory (.tar.gz, .tar)</p>', unsafe_allow_html=True)
 
     
     # Sección 2: Preferencias|
+    #with st.container(border=True):
     st.header("Feature Fixture")
-
     col1, col2, col3 = st.columns(3)
     with col1:
-        info['activation_type'] = st.radio(
-            'Activation Type', ACTIVATION_TYPES, help="")
+        info['activation_type'] = st.radio(r'*Activation Type', ACTIVATION_TYPES, help="")
     with col2:
-        info['well_type'] = st.radio('Well Type', WELL_TYPES)
+        info['well_type'] = st.radio(r'*Well Type', WELL_TYPES)
     with col3:
-        info['size_type'] = st.radio('Size Type', SIZE_TYPES)
+        info['size_type'] = st.radio(r'*Size Type', SIZE_TYPES)
 
     st.divider()
 
@@ -147,6 +149,7 @@ with st.form(key='ict_assesment'):
     with cols[0]:
         info['logistic_data'] = st.radio(
             OPTIONS[0], YES_NO, index=1, horizontal=True)
+        info["items_for_logistic_data"] = st.text_input("What info will be stored?", placeholder="Part Number, Serial Number, Security Key etc.")
         info['config_file'] = st.radio(
             OPTIONS[1], YES_NO, index=1, horizontal=True)
         info['test_spec'] = st.radio(
@@ -177,11 +180,11 @@ with st.form(key='ict_assesment'):
 
     st.text("Select the option")
     info['custom_tests'] = st.radio(
-        'Apply Some custom tests?', YES_NO, index=1, horizontal=True)
+        r'\* Apply Some custom tests?', YES_NO, index=1, horizontal=True)
     info['custom_tests_info'] = st.text_input('Specify More information')
 
     info['switch_probe_on_connector'] = st.radio(
-        'Switch probe on connector required?', YES_NO, index=1, horizontal=True)
+        r'\* Switch probe on connector required?', YES_NO, index=1, horizontal=True)
     info['color_test'] = st.radio(
         'Color/intensity LED test required and preferred sensor?', YES_NO, index=1, horizontal=True)
     info['color_test_info'] = st.text_input('More information')
@@ -194,16 +197,17 @@ with st.form(key='ict_assesment'):
     col1, col2 = st.columns(2)
     with col1:
         info['clock_module'] = st.radio(
-            'Clock Mode for Frequency measurement', REQ_OPTIONS, horizontal=True)
+            r'\* Clock Mode for Frequency measurement', REQ_OPTIONS, horizontal=True)
         info['boundary_scan'] = st.radio(
-            'Boundary Scan Test', REQ_OPTIONS, horizontal=True)
+            r'\* Boundary Scan Test', REQ_OPTIONS, horizontal=True)
+        info["rqeuired_ics"] = st.text_input("Which ICs are considered in the chain?")
         info['testjet'] = st.radio(
             'Testjet', REQ_OPTIONS, horizontal=True)
     with col2:
         info['silicon_nails'] = st.radio(
-            'Silicon nails and CET', REQ_OPTIONS, horizontal=True)
+            r'\*Silicon nails and CET', REQ_OPTIONS, horizontal=True)
         info['board_presence'] = st.radio(
-            'Board Presence', REQ_OPTIONS, horizontal=True)
+            r'\* Board Presence', REQ_OPTIONS, horizontal=True)
         info['travel_place'] = st.text_input(
             'Travel (Indicate the place to delivery)')
 
@@ -243,7 +247,13 @@ with st.form(key='ict_assesment'):
                     info["customer_name"] = info["customer_name2"]
                     customer_in_list = False
                     
-                UPLOAD_FILES_FOLDER = os.path.join(config("PATH_FILE"), COUNTRIES_DICT[country], f"{info['customer_name']}", f"{info['project_name']}")
+                #UPLOAD_FILES_FOLDER = os.path.join(config("PATH_FILE"), COUNTRIES_DICT[country], f"{info['customer_name']}", f"{info['project_name']}")
+                UPLOAD_FILES_FOLDER = os.path.join(config("PATH_FILE"),
+                                                   PROJECTS_FOLDER, 
+                                                   COUNTRIES_DICT[country], 
+                                                   f"{info['customer_name']}",
+                                                   f"{info['project_name']}")
+                
                 if os.path.exists(UPLOAD_FILES_FOLDER):
                     st.error(f"Oppotunity with name {info['project_name']} already created, please contact Sales Manager to update your requirement.")
                     st.stop()
@@ -272,7 +282,8 @@ with st.form(key='ict_assesment'):
                     "StageName": stage_name,
                     "CloseDate": get_last_weekday_of_next_month().strftime("%Y-%m-%d"),
                     "Assessment_Date__c": datetime.now().strftime("%Y-%m-%d"),
-                    "Path__c": config("PATH_TO_SHAREPOINT"),                        
+                    "Path__c": config("PATH_TO_SHAREPOINT"),
+                    "SALES_Due_Date__c": info["quotation_required_date"],
                     "BU__c": BU
                 }
                 
@@ -285,9 +296,9 @@ with st.form(key='ict_assesment'):
                         with open(save_path, "wb") as f:
                             f.write(file.getbuffer())
                             
+                #st.write(new_opp)
                 #raise ValueError("Not uploaded to salesforce yet")
         
-                #st.write(new_opp)
                 result =  st.session_state.salesforce.__getattr__('Opportunity').create(new_opp)
                 #result["success"] = True
 

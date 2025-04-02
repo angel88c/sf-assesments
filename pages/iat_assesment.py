@@ -15,8 +15,6 @@ from datetime import datetime
 st.set_page_config(initial_sidebar_state="collapsed")
 set_global_styles()
 
-IAT_TEMPLATE_FOLDER = "4_Industrial Automation (IAT)"
-
 # Store a variable in session_state
 if "salesforce" not in st.session_state:
     st.session_state.salesforce = connect_to_salesforce()
@@ -39,7 +37,9 @@ def validate_fields(fields):
                        "contact_name",
                        "contact_email",
                        "customer_name",
-                       "date"]
+                       "date",
+                       "travel",
+                       "entity_po"]
 
     error_strings = []
     for required_field in required_fields:
@@ -55,21 +55,25 @@ def validate_fields(fields):
 
 # Título de la aplicación
 load_ibtest_logo()
-st.title(":mechanical_arm: Industrial Automation Test Assesment")
+st.title("Industrial Automation Test Assesment")
 
 info = dict()
 YEAR = str(datetime.today().year)
 BU = "IAT"
+PROJECTS_FOLDER = "4_Industrial Automation (IAT)"
 
 # Crear un formulario
 with st.form(key='iat_assessment'):
     
     all_accounts = get_unique_account_dict()
 
+    with st.columns([2, 1, 1])[0]:
+        info["quotation_required_date"] = st.date_input('When do you need the quote? Select an ideal date', ).strftime("%Y-%m-%d")
+    
     cols = st.columns([2, 1, 1])
     with cols[0]:
         info["project_name"] = st.text_input(
-            'Name or Project Reference', placeholder="Enter the name of the project", )
+            r'*Name or Project Reference', placeholder="Enter the name of the project", )
     with cols[1]:
         info["date"] = st.date_input('Date').strftime("%Y-%m-%d")
     with cols[2]:
@@ -79,7 +83,7 @@ with st.form(key='iat_assessment'):
     col1, col2 = st.columns([1, 2])
     with col1:
         info["contact_name"] = st.text_input(
-            'Contact Name', placeholder="Enter your name")
+            r'*Contact Name', placeholder="Enter your name")
         
         accounts_by_name = {name: id for id, name in all_accounts.items()}
         info["customer_name"] = st.selectbox("Company name", options=list(accounts_by_name.keys()), index=None)
@@ -88,7 +92,7 @@ with st.form(key='iat_assessment'):
         info["contact_phone"] = st.text_input(
             'Phone Number', placeholder="Enter your phone number")
         info["duplicated"] = st.radio(
-            'Duplicated Project', YES_NO, index=1, horizontal=True)
+            r'*Duplicated Project', YES_NO, index=1, horizontal=True)
 
     with col2:
         info["contact_email"] = st.text_input(
@@ -97,7 +101,7 @@ with st.form(key='iat_assessment'):
         #    'Customer Name or Plant', placeholder="Enter the name of the customer or Plant", )
         info["customer_name2"] = st.text_input('If Company not in list, write it here', placeholder="Enter Customer name")
         info["cad_files_and_program"] = st.radio(
-            "If it's Duplicated, Do you have the CAD and PLC Program files?", YES_NO, index=1, horizontal=True)
+            r"*If it's Duplicated, Do you have the CAD and PLC Program files?", YES_NO, index=1, horizontal=True)
 
     # Milestone
     st.markdown('<h2>Milestones</h2>', unsafe_allow_html=True)
@@ -157,7 +161,7 @@ with st.form(key='iat_assessment'):
     cols = st.columns(2)
     with cols[0]:
         info["station_type"] = st.selectbox(
-            "Type of Station or Service?", IAT_STATION_TYPES)
+            r"*Type of Station or Service?", IAT_STATION_TYPES)
     with cols[1]:
         info["station_type_info"] = st.text_area(
             "Station or Service Type details")
@@ -165,7 +169,7 @@ with st.form(key='iat_assessment'):
     cols = st.columns(2)
     with cols[0]:
         info["process_type"] = st.selectbox(
-            "Type of Process?", IAT_PROCESS_TYPES)
+            r"*Type of Process?", IAT_PROCESS_TYPES)
     with cols[1]:
         info["process_type_info"] = st.text_area(
             "Process Type information details")
@@ -173,7 +177,7 @@ with st.form(key='iat_assessment'):
     cols = st.columns(2)
     with cols[0]:
         info["uut_handle_mode"] = st.selectbox(
-            "How will the Unit be Handled?", IAT_UNIT_HANDLE_MODES)
+            r"*How will the Unit be Handled?", IAT_UNIT_HANDLE_MODES)
     with cols[1]:
         info["uut_handle_mode_info"] = st.text_area("More information")
 
@@ -215,8 +219,8 @@ with st.form(key='iat_assessment'):
     info["preferent_hardware"] = st.text_area("Preferent Hardware required? Describe the brands.")
     info["acceptance_criteria"] = st.text_area("Acceptance Criteria.")
     info["general_info_requirement"] = st.text_area("Briefly describe your need and what is the most important to you in the project:")
-    info["travel"] = st.text_input("Travel (Indicate the place of Delivery).")
-    info["entity_po"] = st.text_input("Entity from which PO will come:")
+    info["travel"] = st.text_input(r"*Travel (Indicate the place of Delivery).")
+    info["entity_po"] = st.text_input(r"*Entity from which PO will come:")
 
     comments = st.text_area(label="Additional Comments", placeholder='Write your comments here...')
     info["additional_comments"] = comments
@@ -249,7 +253,13 @@ with st.form(key='iat_assessment'):
                     info["customer_name"] = info["customer_name2"]
                     customer_in_list = False
     
-                UPLOAD_FILES_FOLDER = os.path.join(config("PATH_FILE"), COUNTRIES_DICT[country], f"{info['customer_name']}", f"{info['project_name']}")
+                #UPLOAD_FILES_FOLDER = os.path.join(config("PATH_FILE"), COUNTRIES_DICT[country], f"{info['customer_name']}", f"{info['project_name']}")
+                UPLOAD_FILES_FOLDER = os.path.join(config("PATH_FILE"),
+                                                   PROJECTS_FOLDER, 
+                                                   COUNTRIES_DICT[country], 
+                                                   f"{info['customer_name']}",
+                                                   f"{info['project_name']}")
+                st.write(UPLOAD_FILES_FOLDER)
                 if os.path.exists(UPLOAD_FILES_FOLDER):
                     st.error(f"Oppotunity with name {info['project_name']} already created, please contact Sales Manager to update your requirement.")
                     st.stop()
@@ -291,9 +301,9 @@ with st.form(key='iat_assessment'):
                         with open(save_path, "wb") as f:
                             f.write(file.getbuffer())
                             
+                #st.write(new_opp)
                 #raise ValueError("Not sending to salesforce at moment")
 
-                #st.write(new_opp)
                 result = st.session_state.salesforce.__getattr__('Opportunity').create(new_opp)
                 #result["success"] = True
 
@@ -307,8 +317,7 @@ with st.form(key='iat_assessment'):
                 st.error(f'Error trying to send Form! {e}')
                 st.error('Please, Try again.')
                 st.error('If problem persists, pleas contact Administrator.')
-
-
+                
 # Footer personalizado
 # footer = """
 # <style>
