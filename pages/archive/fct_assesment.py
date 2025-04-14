@@ -7,6 +7,7 @@ from pages.utils.salesforce_access import *
 from pages.utils.test_account_names import *
 from pages.utils.dates_info import *
 from pages.utils.global_styles import *
+from pages.utils.validations import *
 
 import streamlit as st
 from decouple import config
@@ -18,37 +19,22 @@ set_global_styles()
 # Store a variable in session_state
 if "salesforce" not in st.session_state:
     st.session_state.salesforce = connect_to_salesforce()
-
-def validate_email(mail):
     
-    invalid_email_found = False
-    for email in INVALID_EMAILS:
-        if email in mail:
-            print("Correo Inválido")
-            invalid_email_found = True
-            return False
-        
-    if not invalid_email_found:
-        print("Correo Válido")
-        return True
     
-def validate_fields(fields):
-    required_fields = ["project_name",
-                       "contact_name",
-                       "date",
-                       "contact_email"]
+def upload_files():
+    #upload files
+    st.header('Are you sharing files?')
+    uploaded_files = st.file_uploader(".", label_visibility="hidden", accept_multiple_files=True)
+    
+    st.markdown('<p style="margin-bottom: 1px;">*CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 1px;">Gerber files</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 1px;">Schematics (pdf)</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 1px;">Test Spec (pdf, doc)"</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 1px;">BOMS</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 1px;">SOW</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 1px;">Drawings (2d, 3d)</p>', unsafe_allow_html=True)
 
-    error_strings = []
-    for required_field in required_fields:
-        if required_field in fields:
-            if fields[required_field] == "":
-                error_strings.append(
-                    f"El campo {required_field} es obligatorio.")
-
-    if error_strings:
-        return error_strings
-
-    return []
+    return uploaded_files
 
 # Título de la aplicación
 load_ibtest_logo()
@@ -64,56 +50,25 @@ with st.form(key='fct_assesment'):
     
     all_accounts = get_unique_account_dict()
     
-    with st.columns([2, 1, 1])[0]:
-        info["quotation_required_date"] = st.date_input('When do you need the quote? Select an ideal date', ).strftime("%Y-%m-%d")
-
+    st.write("(*) Mandatory Fields")
     col1, col2 = st.columns(2)
     with col1:
-        info["project_name"] = st.text_input(
-            r'*Name or Project Reference', placeholder="Enter the name of the project", )
-        info["contact_name"] = st.text_input(
-            r'*Contact', placeholder="Enter your name")
-        info["contact_email"] = st.text_input(r'*Email')
-        
+        info["project_name"] = st.text_input(r"*Name or Project Reference", placeholder="Enter the name of the project", )
+        info["contact_name"] = st.text_input(r"*Contact Name", placeholder="Enter your name")
         accounts_by_name = {name: id for id, name in all_accounts.items()}
-        info["customer_name"] = st.selectbox(r"*Company name", options=list(accounts_by_name.keys()), index=None)
-        info['country'] = st.selectbox(r'*Country', options=COUNTRIES_DICT.keys())
-        info["is_duplicated"] = st.radio(r'*Duplicated Project?', YES_NO, index=1, horizontal=True)
-
+        info["customer_name"] = st.selectbox(r"*Company name", options=list(accounts_by_name.keys()), index=None, placeholder="Select from list")
+        info['country']      = st.selectbox(r"*Country", options=COUNTRIES_DICT.keys())
+       
     with col2:
-        info["date"] = st.date_input('Date').strftime("%Y-%m-%d")
-        info["project_start_date"] = st.date_input(
-            'Project Start Date').strftime("%Y-%m-%d")
-        #info["customer_name"] = st.text_input(
-        #   'Customer Name or Plant', placeholder="Enter the name of the customer or Plant", )
-
-        info["contact_phone"] = st.text_input(
-            'Phone Number', placeholder="Enter your phone number")
-        info["customer_name2"] = st.text_input('If Customer name not in list, write it here', placeholder="Enter Customer name")
+        info["date"] = datetime.today().strftime("%Y-%m-%d")
+        info["quotation_required_date"] = st.date_input('When do you need the quote? Select an ideal date', ).strftime("%Y-%m-%d")
+        info["contact_email"] = st.text_input(r'*Email', placeholder="Enter your email")
+        info["customer_name2"] = st.text_input("Company not listed? Write it here.", placeholder="Enter the customer name")
+        info["contact_phone"] = st.text_input('Phone Number', placeholder="Enter your phone number")
         
-    st.header('Upload Files')
-    uploaded_files = st.file_uploader(
-        "Upload your files to share with us.", accept_multiple_files=True)
-
-    st.markdown('<p style="margin-bottom: 2px;">*CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">*Gerber files</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">*Schematics (pdf)</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">*Test Spec (pdf, doc)"</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">*BOMS</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">*SOW</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">*Drawings (2d, 3d)</p>', unsafe_allow_html=True)
-
-    # Sección 2: Preferencias|
-    # st.header("Required Internal Departments")
-
-    # col1, col2, col3 = st.columns(3)
-    # with col1:
-    #     info['activation_type'] = st.radio(
-    #         'Activation Type', ACTIVATION_TYPES, help="")
-    # with col2:
-    #     info['well_type'] = st.radio('Well Type', WELL_TYPES)
-    # with col3:
-    #     info['size_type'] = st.radio('Size Type', SIZE_TYPES)
+    info["is_duplicated"] = st.radio(r'*Duplicated Project?', YES_NO, index=1, horizontal=True)
+    
+    uploaded_files = upload_files()
 
     st.divider()
 
@@ -123,7 +78,7 @@ with st.form(key='fct_assesment'):
         info['gerber_files'] = st.radio(r'*Gerber Files', horizontal=True, options=YES_NO)
         info['schematics'] = st.radio(r'*Schematics', horizontal=True, options=YES_NO)
         info['boms'] = st.radio(r'*BOMs of each version', horizontal=True, options=YES_NO)
-        info['traceability_system'] = st.radio( r'*Trazability System', horizontal=True, options=YES_NO)
+        info['traceability_system'] = st.radio( r'*Traceability System', horizontal=True, options=YES_NO)
         info['sow'] = st.radio(r'*SOW', horizontal=True, options=YES_NO)
         info["product_finish"] = st.selectbox(r"*Specify how the product will be test", FCT_PRODUCT_FINISH)
         info["test_strategy"] = st.selectbox(r"*Test strategy", FCT_TEST_STRATEGIES)
@@ -133,33 +88,26 @@ with st.form(key='fct_assesment'):
         info['test_spec'] = st.radio('Test Spec', horizontal=True, options=YES_NO)
         info['parallel_testing'] = st.radio('Parallel Testing?', horizontal=True, options=YES_NO)
         info['security_specification'] = st.radio('Security Specification', horizontal=True, options=YES_NO)
-
-        info["traceability_system_name"] = st.text_input(
-            label=".", label_visibility="hidden", placeholder='Traceability system')
-        info["ergonomy_specifications"] = st.text_input(
-            label=".", label_visibility="hidden", placeholder='Ergonomy Specifications')
-
-        info['osp_finish'] = st.radio(
-            'In the case of PCB, Does the product have OSP finish on TPs?', horizontal=True, index=1, options=YES_NO)
-
-        info['quantity_uut'] = st.number_input(r"*How many units under test?", min_value=0, value=0)
+        info["traceability_system_name"] = st.text_input(label=".", label_visibility="hidden", placeholder="ITAC, MES, etc.")
+        info["ergonomy_specifications"] = st.text_input(label=".", label_visibility="hidden", placeholder='Ergonomy Specifications')
+        info['osp_finish'] = st.radio('In the case of PCB, Does the product have OSP finish on TPs?', horizontal=True, index=1, options=YES_NO)
+        info['quantity_uut'] = st.number_input(r"*How many units under test?", min_value=1)
         info["fixture_vendor"] = st.selectbox("Fixture Vendor required (if apply):", FCT_FIXTURE_VENDORS)
 
     st.divider()
-    st.markdown("<h4>FCT System Assesment</h4>", unsafe_allow_html=True)
-
-
+    
+    subtitle_h3("FCT System Assesment")
     info["studies_necessaries"] = st.multiselect(
-        label=r"*Select the studies necessaries (MSA, GRR...)", options=FCT_STUDIES_OPTIONS)
+        label=r"*Select the studies necessaries (MSA, GRR...)", options=FCT_STUDIES_OPTIONS, placeholder="You can select multiple")
 
     col1, col2 = st.columns(2)
     with col1:
-        info["qty_microstrains"] = st.text_input("How many uS (microstrains)?")
+        info["qty_microstrains"] = st.text_input("How many uS (microstrains)?" ,placeholder="600")
 
     with col2:
-        info["rosettes"] = st.text_input("How many Rosettes?")
+        info["rosettes"] = st.text_input("How many Rosettes?", placeholder="8")
 
-    info["fixture_needs"] = st.text_area("Describe the needs of the Fixture:")
+    info["fixture_needs"] = st.text_area("Describe the needs of the Fixture:", placeholder="Kit ingun\nMass interconnect\nPneumatic fixture, etc.")
 
     st.divider()
 
@@ -181,8 +129,7 @@ with st.form(key='fct_assesment'):
 
     col1, col2 = st.columns(2)
     with col1:
-        info["scanner_brand"] = st.selectbox(
-            "Scanner:", ["Keyence", "Cognex", "Microscan", "Other"])
+        info["scanner_brand"] = st.text_input("Preferred Scanner Brand", placeholder="Keyence, Cognex, Microscan, Steren, etc.")
         info['modifications_customer'] = st.radio(
             'Does the customer want to make modifications to the system or test procedure by himself??', YES_NO, index=1, horizontal=True)
 
@@ -216,22 +163,16 @@ with st.form(key='fct_assesment'):
             r"*Certifications Required?", YES_NO, horizontal=True, index=1)
 
     with col2:
-        info["single_product_info"] = st.text_input(
-            label=".", placeholder="Specify", key="single_product_info")
-        info["self_test_required_info"] = st.text_input(
-            # , key="test_exec_cond")
-            label=".", placeholder="Specify", key="self_test_required_info")
-        info["certification_required_info"] = st.text_input(
-            # , key="test_exec_cond")
-            label=".", placeholder="Specify", key="certification_info")
-        info["certifications_option"] = st.selectbox(
-            "Other Certifications:", ["Other", "CE", "EMV", "VDE", "Calibration", "UL"])
+        info["single_product_info"] = st.text_input(label=".", placeholder="Specify", key="single_product_info")
+        info["self_test_required_info"] = st.text_input(label=".", placeholder="Specify", key="self_test_required_info")
+        info["certification_required_info"] = st.text_input(label=".", placeholder="Specify", key="certification_info")
+        info["certifications_option"] = st.selectbox("Other Certifications:", ["Other", "CE", "EMV", "VDE", "Calibration", "UL"])
 
         # Sección 3: Comentarios Adicionales
-    st.markdown("<h4>Additional Comments</h4>", unsafe_allow_html=True)
-    info["travel"] = st.text_input(r"*Travel (Indicate the place of Delivery).")
-    info["entity_po"] = st.text_input(r"*Entity from which PO will come:")
-    info["additional_comments"] = st.text_area(label="Additional Comments")
+    st.markdown("<h4>Additional Information</h4>", unsafe_allow_html=True)
+    info["travel"] = st.text_input(r"*Travel (Indicate the place of Delivery).", placeholder="San Juan del Río")
+    info["entity_po"] = st.text_input(r"*The entity that the PO will come from.", placeholder="Queretaro")
+    info["additional_comments"] = st.text_area(label="Additional Comments", placeholder='Write your comments here...')
     
     # Botón de envío
     enviar = st.form_submit_button(
@@ -239,7 +180,6 @@ with st.form(key='fct_assesment'):
 
     # Acciones al enviar el formulario
     if enviar:
-
         current_datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
         valid_email = validate_email(info['contact_email'])
         if not valid_email:

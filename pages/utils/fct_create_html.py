@@ -69,9 +69,14 @@ def contact_section(data):
         {key_value('Customer Name or Plant', data['customer_name'])}
         {key_value('Email', data['contact_email'])}
         {key_value('Date', data['date'])}
-        {key_value('Probable Start Date', data['project_start_date'])}
         {key_value('Fixture Vendor', data['fixture_vendor'])}
         {key_value('Duplicated Project', data['is_duplicated'])}
+         <!-- File Types -->
+        <div class="section-title text-lg font-semibold text-gray-700">Uploaded File Types</div>
+        {
+            ''.join([key_value(file_type, "Yes") for file_type, value in data.get("file_types", {}).items() if value])
+            if data.get("file_types") and any(data["file_types"].values()) else key_value("File Types", "None")
+        }
 
     </div>
     """

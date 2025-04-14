@@ -7,6 +7,7 @@ from pages.utils.salesforce_access import *
 from pages.utils.test_account_names import *
 from pages.utils.dates_info import *
 from pages.utils.global_styles import *
+from pages.utils.validations import *
 
 import streamlit as st
 from decouple import config
@@ -18,40 +19,22 @@ set_global_styles()
 # Store a variable in session_state
 if "salesforce" not in st.session_state:
     st.session_state.salesforce = connect_to_salesforce()
-
-def validate_email(mail):
     
-    invalid_email_found = False
-    for email in INVALID_EMAILS:
-        if email in mail:
-            print("Correo Inválido")
-            invalid_email_found = True
-            return False
-        
-    if not invalid_email_found:
-        print("Correo Válido")
-        return True
     
-def validate_fields(fields):
-    required_fields = ["project_name",
-                       "contact_name",
-                       "contact_email",
-                       "customer_name",
-                       "date",
-                       "travel",
-                       "entity_po"]
-
-    error_strings = []
-    for required_field in required_fields:
-        if required_field in fields:
-            if fields[required_field] == "":
-                error_strings.append(
-                    f"El campo {required_field} es obligatorio.")
-
-    if error_strings:
-        return error_strings
-
-    return []
+def upload_files():
+    # Upload Files
+    st.header('Are you sharing files?')
+    uploaded_files = st.file_uploader(".", label_visibility="hidden", accept_multiple_files=True)
+    
+    st.markdown('<p style="margin-bottom: 1px;">*CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 1px;">Drawings (2d, 3d)</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 1px;">Gerber files</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 1px;">PLC, HMI, Robot programming standards (Templates)</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 1px;">Test Spec (pdf, doc)"</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 1px;">Product Spec.</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 1px;">Product manufacturing sheet.</p>', unsafe_allow_html=True)
+    
+    return uploaded_files
 
 # Título de la aplicación
 load_ibtest_logo()
@@ -67,41 +50,29 @@ with st.form(key='iat_assessment'):
     
     all_accounts = get_unique_account_dict()
 
-    with st.columns([2, 1, 1])[0]:
-        info["quotation_required_date"] = st.date_input('When do you need the quote? Select an ideal date', ).strftime("%Y-%m-%d")
-    
-    cols = st.columns([2, 1, 1])
-    with cols[0]:
-        info["project_name"] = st.text_input(
-            r'*Name or Project Reference', placeholder="Enter the name of the project", )
-    with cols[1]:
-        info["date"] = st.date_input('Date').strftime("%Y-%m-%d")
-    with cols[2]:
-        info["project_start_date"] = st.date_input(
-            'Project Start Date').strftime("%Y-%m-%d")
-
-    col1, col2 = st.columns([1, 2])
+    st.write("(*) Mandatory Fields")
+    col1, col2 = st.columns(2)
     with col1:
-        info["contact_name"] = st.text_input(
-            r'*Contact Name', placeholder="Enter your name")
-        
+        info["project_name"] = st.text_input(r"*Name or Project Reference", placeholder="Enter the name of the project", )
+        info["contact_name"] = st.text_input(r"*Contact Name", placeholder="Enter your name")
         accounts_by_name = {name: id for id, name in all_accounts.items()}
-        info["customer_name"] = st.selectbox("Company name", options=list(accounts_by_name.keys()), index=None)
-        info['country'] = st.selectbox('Country', options=COUNTRIES_DICT.keys())
-        
-        info["contact_phone"] = st.text_input(
-            'Phone Number', placeholder="Enter your phone number")
-        info["duplicated"] = st.radio(
-            r'*Duplicated Project', YES_NO, index=1, horizontal=True)
-
+        info["customer_name"] = st.selectbox(r"*Company name", options=list(accounts_by_name.keys()), index=None, placeholder="Select from list")
+        info['country']      = st.selectbox(r"*Country", options=COUNTRIES_DICT.keys())
+       
     with col2:
-        info["contact_email"] = st.text_input(
-            'Email', placeholder='Enter your email address')
-        #info["customer_name"] = st.text_input(
-        #    'Customer Name or Plant', placeholder="Enter the name of the customer or Plant", )
-        info["customer_name2"] = st.text_input('If Company not in list, write it here', placeholder="Enter Customer name")
-        info["cad_files_and_program"] = st.radio(
-            r"*If it's Duplicated, Do you have the CAD and PLC Program files?", YES_NO, index=1, horizontal=True)
+        info["date"] = datetime.today().strftime("%Y-%m-%d")
+        info["quotation_required_date"] = st.date_input('When do you need the quote? Select an ideal date', ).strftime("%Y-%m-%d")
+        info["contact_email"] = st.text_input(r'*Email', placeholder="Enter your email")
+        info["customer_name2"] = st.text_input("Company not listed? Write it here.", placeholder="Enter the customer name")
+        info["contact_phone"] = st.text_input('Phone Number', placeholder="Enter your phone number")
+    
+    info["duplicated"] = st.radio(
+        r'*Duplicated Project', YES_NO, index=1, horizontal=True)
+    info["cad_files_and_program"] = st.radio(
+        r"*If it's Duplicated, Do you have the CAD and PLC Program files?", YES_NO, index=1, horizontal=True)
+
+
+    uploaded_files = upload_files()
 
     # Milestone
     st.markdown('<h2>Milestones</h2>', unsafe_allow_html=True)
@@ -116,7 +87,7 @@ with st.form(key='iat_assessment'):
             info['nests'] = st.radio(
                 IAT_MILESTONES[2], YES_NO, index=1, horizontal=True)
         with ncols[1]:
-            info["qty_nests"] = st.text_input("How Many Nests?")
+            info["qty_nests"] = st.text_input("How Many Nests?", placeholder="4")
 
         info['plc_programming_standard'] = st.radio(
             IAT_MILESTONES[3], YES_NO, index=1, horizontal=True)
@@ -127,7 +98,7 @@ with st.form(key='iat_assessment'):
             info["layout"] = st.radio(
                 IAT_MILESTONES[5], YES_NO, index=1, horizontal=True)
         with ncols[1]:
-            info["dimensions"] = st.text_input("Dimensions")
+            info["dimensions"] = st.text_input("Dimensions", placeholder="4cm x 2.5cm")
 
     with cols[1]:
         info["product_manufacturing_sheet"] = st.radio(
@@ -135,18 +106,15 @@ with st.form(key='iat_assessment'):
 
         ncols = st.columns(2)
         with ncols[0]:
-            info["traceability"] = st.radio(
-                IAT_MILESTONES[7], YES_NO, index=1, horizontal=True)
+            info["traceability"] = st.radio(IAT_MILESTONES[7], YES_NO, index=1, horizontal=True)
         with ncols[1]:
-            info["traceability_name"] = st.text_input(
-                "Traceability System Name")
+            info["traceability_name"] = st.text_input("Traceability System Name", placeholder="ITAC, MES, etc.")
 
         with ncols[0]:
             info["estimated_cycle_time"] = st.radio(
                 IAT_MILESTONES[8], YES_NO, index=1, horizontal=True)
         with ncols[1]:
-            info["cycle_time"] = st.text_input(
-                "Estimated Cycle Time (Include Time units, min, sec, msec)")
+            info["cycle_time"] = st.text_input("Estimated Cycle Time", placeholder="7.5 sec")
 
         with ncols[0]:
             info["special_handling"] = st.radio(
@@ -200,31 +168,17 @@ with st.form(key='iat_assessment'):
         info["certifications_info"] = st.text_area(
             "Details for Required Certifications")
 
-    # Upload Files
-    st.header('Upload Files')
-    uploaded_files = st.file_uploader(
-        "Upload your files to share with us.", accept_multiple_files=True)
-    
-    st.markdown('<p style="margin-bottom: 2px;">CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">Drawings (2d, 3d)</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">Gerber files</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">PLC, HMI, Robot programming standards (Templates)</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">Test Spec (pdf, doc)"</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">Product Spec.</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">Product manufacturing sheet.</p>', unsafe_allow_html=True)
-
     # Sección 2: Preferencias|
-    st.markdown("<h4>Additional Comments</h4>", unsafe_allow_html=True)
 
     info["preferent_hardware"] = st.text_area("Preferent Hardware required? Describe the brands.")
     info["acceptance_criteria"] = st.text_area("Acceptance Criteria.")
     info["general_info_requirement"] = st.text_area("Briefly describe your need and what is the most important to you in the project:")
-    info["travel"] = st.text_input(r"*Travel (Indicate the place of Delivery).")
-    info["entity_po"] = st.text_input(r"*Entity from which PO will come:")
-
-    comments = st.text_area(label="Additional Comments", placeholder='Write your comments here...')
-    info["additional_comments"] = comments
     
+    st.markdown("<h4>Additional Information</h4>", unsafe_allow_html=True)
+    info["travel"] = st.text_input(r"*Travel (Indicate the place of Delivery).", placeholder="San Juan del Río")
+    info["entity_po"] = st.text_input(r"*The entity that the PO will come from.", placeholder="Queretaro")
+    info["additional_comments"] = st.text_area(label="Additional Comments", placeholder='Write your comments here...')
+        
     # Botón de envío
     enviar = st.form_submit_button('Submit', help='Submit form', type='primary')
 
@@ -232,10 +186,10 @@ with st.form(key='iat_assessment'):
     if enviar:
         current_datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
         
-        valid_email = validate_email(info['contact_email'])
-        if not valid_email:
-            st.error("Error!! Only Corporate emails are valid")
-            st.stop()
+        # valid_email = validate_email(info['contact_email'])
+        # if not valid_email:
+        #     st.error("Error!! Only Corporate emails are valid")
+        #     st.stop()
             
         errors_validation = validate_fields(info)
         if errors_validation:

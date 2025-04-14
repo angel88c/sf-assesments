@@ -42,7 +42,7 @@ data = {
     "testjet": "NA",
     "silicon_nails": "NA",
     "board_presence": "NA",
-    "travel_place": ""
+    "travel": ""
 }
 
 
@@ -97,6 +97,13 @@ def json_to_html(data):
                     {key_value('Email', data['contact_email'])}
                     {key_value('Fixture Supplier', data['fixture_supplier'])}
                     {key_value('Supplier Info', data['fixture_supplier_info'])}
+                    
+                    <!-- Fixture Types -->
+                    <div class="section-title">Uploaded File Types</div>
+                    {
+                        ''.join([key_value(f"Type {i+1}", file_type) for i, file_type in enumerate(data["file_types"])])
+                        if data.get("file_types") else key_value("File Types", "None")
+                    }
 
                     <!-- Technical Specs -->
                     <div class="section-title">Technical Specifications</div>
@@ -126,7 +133,7 @@ def json_to_html(data):
                     <div class="section-title">Additional Information</div>
                     {key_value('Automatic Scanner', data['automatic_scanner'])}
                     {key_value('Boundary Scan', data['boundary_scan'])}
-                    {key_value('Travel Place', data['travel_place'] or 'None')}
+                    {key_value('Travel Place', data['travel'] or 'None')}
 
                     <!-- Footer -->
                     <div class="mt-4 pt-2 text-end small text-muted">

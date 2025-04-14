@@ -1,6 +1,36 @@
+"""
+Dates Information Module
+
+This module provides functions for date calculations and manipulations.
+"""
+
 from datetime import datetime, timedelta
 
+def get_date_after_next_working_days(working_days, initial_date=None):
+    
+    if initial_date is None:
+        initial_date = datetime.now()
+        
+    
+    future_date = initial_date
+    added_days = 0
+    
+    while added_days < working_days:
+        future_date += timedelta(days=1)
+        
+        # Check if its a working day (Monday=0 a Friday=4)
+        if future_date.weekday() < 5:
+            added_days += 1
+        
+    return future_date
+
 def get_last_weekday_of_next_month():
+    """
+    Calculate the last weekday (Monday-Friday) of the next month.
+    
+    Returns:
+        datetime: The last weekday of the next month
+    """
     # Get today's date
     today = datetime.today()
     
@@ -21,5 +51,26 @@ def get_last_weekday_of_next_month():
     
     return last_day_next_month
 
+
+
+def get_formatted_date(date_obj=None, format_str="%Y-%m-%d"):
+    """
+    Format a date object as a string.
+    
+    Args:
+        date_obj (datetime, optional): The date to format. Defaults to today.
+        format_str (str, optional): The format string. Defaults to "%Y-%m-%d".
+        
+    Returns:
+        str: The formatted date string
+    """
+    if date_obj is None:
+        date_obj = datetime.today()
+    
+    return date_obj.strftime(format_str)
+
 # Example usage
 last_weekday = get_last_weekday_of_next_month()
+
+future_day = get_date_after_next_working_days(6)
+print(future_day)

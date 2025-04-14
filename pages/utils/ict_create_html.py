@@ -69,7 +69,12 @@ def contact_section(data):
         {key_value('Phone Number', data['contact_phone'])}
         {key_value('Email Address', data['contact_email'])}
         {key_value('Fixture Supplier', data['fixture_supplier'])}
-        {key_value('Supplier Info', data['fixture_supplier_info'])}
+        <!-- Fixture Types -->
+        <div class="section-title text-lg font-semibold text-gray-700">Uploaded File Types</div>
+        {
+            ''.join([key_value(file_type, "Yes") for file_type, value in data.get("file_types", {}).items() if value])
+            if data.get("file_types") and any(data["file_types"].values()) else key_value("File Types", "None")
+        }
     </div>
     """
 
@@ -115,6 +120,7 @@ def testing_section(data):
         {key_value('Switch Probe', data['switch_probe_on_connector'])}
         {key_value('Color Test', data['color_test'])}
         {key_value('Color Test Info', data['color_test_info'])}
+        
     </div>
     """
 
@@ -125,6 +131,8 @@ def additional_section(data):
         {key_value('Clock Module', data['clock_module'])}
         {key_value('Boundary Scan', data['boundary_scan'])}
         {key_value('TestJet', data['testjet'])}
+        {key_value('ICs for Testjet', data['ics_with_testjet'])}
+        {key_value('ICs for BS Chain', data['required_ics'])}
         {key_value('Silicon Nails', data['silicon_nails'])}
         {key_value('Board Presence', data['board_presence'])}
     </div>
@@ -136,7 +144,7 @@ def miscellaneous_section(data):
         <h3 class="text-lg font-semibold text-gray-700">Miscellaneous</h3>
         {key_value('Custom Tests', data['custom_tests'])}
         {key_value('Custom Tests Info', data['custom_tests_info'])}
-        {key_value('Travel Place', data['travel_place'])}
+        {key_value('Travel Place', data['travel'])}
         {key_value('Additional Comments', data['additional_comments'])}
     </div>
     """

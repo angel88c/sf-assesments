@@ -1,15 +1,13 @@
 
 YES_NO = ['Yes', 'No']
 
-FIXTURE_TYPES = ['OffLine', 'InLine']
-
 REQ_OPTIONS = ['NA', 'Required', 'Optional']
 
-ACTIVATION_TYPES = ['Vacuum box',
-                    'Hold down gates',
-                    'Pneumatic',
-                    'Inline Test Fixture']
-
+ACTIVATION_TYPES = {'Vacuum box': "OffLine",
+                    'Hold down gates': "OffLine",
+                    'Pneumatic': "OffLine",
+                    'InLine Test Fixture': "InLine",
+                  }
 WELL_TYPES = ['Single well',
               'Dual well',
               'Dual stage']
@@ -19,15 +17,16 @@ SIZE_TYPES = ['Small Kit',
               'Small Extended',
               'Large Extended']
 
-OPTIONS = ['(*) Logistic data will be flashed?',
-           '(*) It has the config file and codeword data of the 3070?',
+OPTIONS = ['(*) Will logistic data be flashed?',
+           "What kind of info will be stored?",
+           '(*) Do you have the config file and codeword data of the 3070?',
            '(*) Do you have Test Spec?',
            '(*) Do you have Fixture SOW?',
-           '(*) Panel Test? Specify Qty boards on the panel',
-           '(*) Individual test? Specify Nest Qty']
+           '(*) Panel Test? Specify qty boards on the panel',
+           '(*) Individual Test? Specify Nest qty']
 
 COUNTRIES_DICT = {'Mexico': 'MX',
-                  'USA': 'US',
+                  'USA': 'USA',
                   'Canada': "CAD",
                   'Europe': 'EUR', 
                   'Asia': 'ASIA', 
@@ -35,17 +34,17 @@ COUNTRIES_DICT = {'Mexico': 'MX',
             }
 
 # IAT
-IAT_MILESTONES = ['Drawings (2D, 3D) .step files, .cad?',
+IAT_MILESTONES = [r'*Drawings (2D, 3D) .step files, .cad?',
                   r'*Process Spec?',
-                  r'*Nest?',
+                  r'Nest?',
                   r'*PLC, HMI, Robot programming standards (Templates)?',
                   r'*SOW and Ergonomic Specification?',
-                  r'*Layout?',
-                  r'*Product Manufacturing Sheet?',
-                  r'*Traceability?',
-                  r'*Estimated process cycle time?',
-                  r'*Is any special handling on the unit needed?',
-                  r'*Do you have samples?']
+                  r'Layout?',
+                  r'Product Manufacturing Sheet?',
+                  r'Traceability?',
+                  r'Estimated process cycle time?',
+                  r'Is any special handling on the unit needed?',
+                  r'Do you have samples?']
 
 IAT_STATION_TYPES = ['Select',
                      'Other',

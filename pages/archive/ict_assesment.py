@@ -7,6 +7,7 @@ from pages.utils.salesforce_access import *
 from pages.utils.dates_info import *
 from pages.utils.test_account_names import *
 from pages.utils.global_styles import *
+from pages.utils.validations import *
 
 import streamlit as st
 from decouple import config
@@ -20,39 +21,21 @@ set_global_styles()
 # Store a variable in session_state
 if "salesforce" not in st.session_state:
     st.session_state.salesforce = connect_to_salesforce()
-
-def validate_email(mail):
     
-    invalid_email_found = False
-    for email in INVALID_EMAILS:
-        if email in mail:
-            print("Correo Inválido")
-            invalid_email_found = True
-            return False
-        
-    if not invalid_email_found:
-        print("Correo Válido")
-        return True
-    
-def validate_fields(fields):
-    required_fields = ["project_name",
-                       "contact_name",
-                       "fixture_type",
-                       "date",
-                       "contact_email"
-                    ]
 
-    error_strings = []
-    for required_field in required_fields:
-        if required_field in fields:
-            if fields[required_field] == "":
-                error_strings.append(
-                    f"El campo {required_field} es obligatorio.")
+def upload_files():
+    #upload files
+    st.header('Are you sharing files?')
+    uploaded_files = st.file_uploader(".", label_visibility="hidden", accept_multiple_files=True)
 
-    if error_strings:
-        return error_strings
+    st.markdown('<p style="margin-bottom: 1px;">*CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 1px;">Gerber files</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 1px;">Schematics (pdf)</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 1px;">Test Spec (pdf, doc)"</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-bottom: 1px;">Board directory (.tar.gz, .tar)</p>', unsafe_allow_html=True)
 
-    return []
+    return uploaded_files
+
 
 load_ibtest_logo()
 st.title("In Circuit Test Assesment")
@@ -68,50 +51,38 @@ with st.form(key='ict_assesment'):
     all_accounts = get_unique_account_dict()
     
     st.write("(*) Mandatory Fields")
-    
     col1, col2 = st.columns(2)
     with col1:
-        info["project_name"] = st.text_input(
-            r'\* Name or Project Reference', placeholder="Enter the name of the project", )
-        info["contact_name"] = st.text_input(
-            r'\* Contact Name', placeholder="Enter your name")
-        info['country'] = st.selectbox(r'*Country', options=COUNTRIES_DICT.keys())
-        #info["customer_name"] = st.text_input(
-        #    'Customer Name or Plant', placeholder="Enter the name of the customer or Plant", )
-        #st.selectbox("Accounts", options=ACCOUTS, index=None )
-        
+        info["project_name"] = st.text_input(r"*Name or Project Reference", placeholder="Enter the name of the project", )
+        info["contact_name"] = st.text_input(r"*Contact Name", placeholder="Enter your name")
         accounts_by_name = {name: id for id, name in all_accounts.items()}
-        info["customer_name"] = st.selectbox(r"*Company name", options=list(accounts_by_name.keys()), index=None)
-        info["contact_phone"] = st.text_input('Phone Number', placeholder="Enter your phone number")
+        info["customer_name"] = st.selectbox(r"*Company name", options=list(accounts_by_name.keys()), index=None, placeholder="Select from list")
+        info['country']      = st.selectbox(r"*Country", options=COUNTRIES_DICT.keys())
        
     with col2:
         info["date"] = datetime.today().strftime("%Y-%m-%d")
         info["quotation_required_date"] = st.date_input('When do you need the quote? Select an ideal date', ).strftime("%Y-%m-%d")
-        info["contact_email"] = st.text_input(r'*Email')
+        info["contact_email"] = st.text_input(r'*Email', placeholder="Enter your email")
+        info["customer_name2"] = st.text_input("Company not listed? Write it here.", placeholder="Enter the customer name")
+        info["contact_phone"] = st.text_input('Phone Number', placeholder="Enter your phone number")
+        
+    col1, col2 = st.columns(2)
+    with col1:
         info["is_duplicated"] = st.radio(r'*Duplicated Fixture?', YES_NO, index=1, horizontal=True)
-        info["customer_name2"] = st.text_input('If Company name not in list, write it here', placeholder="Enter Customer name")
+    with col2:
         info["fixure_type"] = st.radio(r'*Fixture Type', FIXTURE_TYPES, horizontal=True)
-
+        
     info["inline_bottom_side"] = st.text_input(
-        'For InLine systems, which is the bottom side')
+        'For InLine systems, which is the bottom side?', placeholder="Bottom side of PCB for Test System, e. g. Conenctor Side, main uc side, Layer")
 
-    st.header('Upload Files')
-    uploaded_files = st.file_uploader(
-        "Upload your files to share with us.", accept_multiple_files=True)
+    uploaded_files = upload_files()
 
-    st.markdown('<p style="margin-bottom: 2px;">*CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">*Gerber files</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">*Schematics (pdf)</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">*Test Spec (pdf, doc)"</p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-bottom: 2px;">*Board directory (.tar.gz, .tar)</p>', unsafe_allow_html=True)
-
-    
     # Sección 2: Preferencias|
     #with st.container(border=True):
     st.header("Feature Fixture")
     col1, col2, col3 = st.columns(3)
     with col1:
-        info['activation_type'] = st.radio(r'*Activation Type', ACTIVATION_TYPES, help="")
+        info['activation_type'] = st.radio(r'*Activation Type', options=ACTIVATION_TYPES)
     with col2:
         info['well_type'] = st.radio(r'*Well Type', WELL_TYPES)
     with col3:
@@ -121,25 +92,28 @@ with st.form(key='ict_assesment'):
 
     info['flash_programming'] = st.radio(
         'Flash Programming?', REQ_OPTIONS,
-        horizontal=True,
-        help="If some device will be programmed at ICT, mark as desired")
+        horizontal=True)
+    
+    text_enter = st.text_input("Enter the numbers of devices to program, use comma to separate them.", placeholder="TC387, PIC16F628, MC9S12EXBP")
+    devices = text_enter.split(",")
+    info["program_devices"] = devices
+    info["quantity_devices"] = len(devices)
+    
+    # col1, col2 = st.columns(2)
+    # with col1:
+    #     info['quantity_devices'] = st.number_input(
+    #         "How many devices should be programmed?", placeholder="Enter the number of devices to program", min_value=0, value=0)
 
-    col1, col2 = st.columns(2)
-    with col1:
-        info['quantity_devices'] = st.number_input(
-            "How many devices should be programmed?", placeholder="Enter the number of devices to program", min_value=0, value=0)
-
-    devices = []
-    with col2:
-        devices.append(st.text_input('Device 1 Part Number'))
-        devices.append(st.text_input('Device 2 Part Number'))
-        devices.append(st.text_input('Device 3 Part Number'))
-        devices.append(st.text_input('Device 4 Part Number'))
+    # devices = []
+    # with col2:
+    #     devices.append(st.text_input('Device 1 Part Number'))
+    #     devices.append(st.text_input('Device 2 Part Number'))
+    #     devices.append(st.text_input('Device 3 Part Number'))
+    #     devices.append(st.text_input('Device 4 Part Number'))
 
     info["program_devices"] = devices
     info["programmer_brand"] = st.text_input(
-        'What Programmer (Brand) do you want us to use?',
-        help="Preferred Programmer Brand, e.g. FlashRunner 2.0, Phyton, Algocraft, Segger, etc.")
+        'What Programmer (Brand) do you want us to use?', placeholder="FlashRunner 2.0, FRCube, Phyton, Algocraft, Segger, etc.")
     info['versions'] = st.number_input(
         "How many versions?", placeholder="Enter the number of versions to consider", value=0)
 
@@ -149,22 +123,23 @@ with st.form(key='ict_assesment'):
     with cols[0]:
         info['logistic_data'] = st.radio(
             OPTIONS[0], YES_NO, index=1, horizontal=True)
-        info["items_for_logistic_data"] = st.text_input("What info will be stored?", placeholder="Part Number, Serial Number, Security Key etc.")
+        info["items_for_logistic_data"] = st.text_input(
+            OPTIONS[1], placeholder="Part Number, Serial Number, Security Key etc.")
         info['config_file'] = st.radio(
-            OPTIONS[1], YES_NO, index=1, horizontal=True)
-        info['test_spec'] = st.radio(
             OPTIONS[2], YES_NO, index=1, horizontal=True)
-        info['fixture_sow'] = st.radio(
+        info['test_spec'] = st.radio(
             OPTIONS[3], YES_NO, index=1, horizontal=True)
+        info['fixture_sow'] = st.radio(
+            OPTIONS[4], YES_NO, index=1, horizontal=True)
 
     with cols[1]:
         info['panel_test'] = st.radio(
-            OPTIONS[4], YES_NO, index=1, horizontal=True)
+            OPTIONS[5], YES_NO, index=1, horizontal=True)
         # if info['panel_test'] == 'Yes':
         info['quantity_panel'] = st.number_input(
-            'Quantity Boards on Panel?', value=0)
+            'Quantity Boards on Panel?', value=0)f
         info['individual_test'] = st.radio(
-            OPTIONS[5], YES_NO, index=1, horizontal=True)
+            OPTIONS[6], YES_NO, index=1, horizontal=True)
         info['quantity_nest'] = st.number_input('Specify Nest Qty?', value=0)
 
     st.divider()
@@ -179,44 +154,35 @@ with st.form(key='ict_assesment'):
     st.divider()
 
     st.text("Select the option")
-    info['custom_tests'] = st.radio(
-        r'\* Apply Some custom tests?', YES_NO, index=1, horizontal=True)
-    info['custom_tests_info'] = st.text_input('Specify More information')
+    
+    col1, col2 = st.columns(2)
+    with col1:  info['custom_tests'] = st.radio(r'* Apply Some custom tests?', YES_NO, index=1, horizontal=True)
+    with col2:  info['custom_tests_info'] = st.text_input('Specify', placeholder="CAN Communication, CyberSecurity, LIN, etc.")
 
-    info['switch_probe_on_connector'] = st.radio(
-        r'\* Switch probe on connector required?', YES_NO, index=1, horizontal=True)
-    info['color_test'] = st.radio(
-        'Color/intensity LED test required and preferred sensor?', YES_NO, index=1, horizontal=True)
-    info['color_test_info'] = st.text_input('More information')
+    info['switch_probe_on_connector'] = st.radio(r'* Switch probe on connector required?', YES_NO, index=1, horizontal=True)
 
-    info['fixture_supplier'] = st.radio(
-        'Fixture supplier preferred', YES_NO, index=1, horizontal=True)
-    info['fixture_supplier_info'] = st.text_input(
-        'Specify the preferred Fixture Vendor', placeholder='Circuit Check, Rematek, Arcadia, Juarez Technology, QxQ, etc.')
+    col1, col2 = st.columns(2)    
+    with col1:  info['color_test'] = st.radio('Color/intensity LED test required and preferred sensor?', YES_NO, index=1, horizontal=True)
+    with col2:  info['color_test_info'] = st.text_input('Specify', placeholder="Color Test, Feasa Led Analyzer/Optimistic.")
+
+    info['fixture_supplier'] = st.radio('Fixture supplier preferred', YES_NO, index=1, horizontal=True)
+    info['fixture_supplier_info'] = st.text_input('Specify the preferred Fixture Vendor', placeholder='Circuit Check, Rematek, Arcadia, Juarez Technology, QxQ, etc.')
 
     col1, col2 = st.columns(2)
     with col1:
-        info['clock_module'] = st.radio(
-            r'\* Clock Mode for Frequency measurement', REQ_OPTIONS, horizontal=True)
-        info['boundary_scan'] = st.radio(
-            r'\* Boundary Scan Test', REQ_OPTIONS, horizontal=True)
-        info["rqeuired_ics"] = st.text_input("Which ICs are considered in the chain?")
-        info['testjet'] = st.radio(
-            'Testjet', REQ_OPTIONS, horizontal=True)
+        info['clock_module'] = st.radio(r'*Clock Mode for Frequency measurement', REQ_OPTIONS, horizontal=True)
+        info['boundary_scan'] = st.radio(r'*Boundary Scan Test', REQ_OPTIONS, horizontal=True)
+        info['testjet'] = st.radio('Testjet', REQ_OPTIONS, horizontal=True)
     with col2:
-        info['silicon_nails'] = st.radio(
-            r'\*Silicon nails and CET', REQ_OPTIONS, horizontal=True)
-        info['board_presence'] = st.radio(
-            r'\* Board Presence', REQ_OPTIONS, horizontal=True)
-        info['travel_place'] = st.text_input(
-            'Travel (Indicate the place to delivery)')
-
+        info['silicon_nails'] = st.radio(r'*Silicon nails and CET', REQ_OPTIONS, horizontal=True)
+        info["rqeuired_ics"] = st.text_input("Which ICs are considered in the chain?", placeholder="MC9S12XEBP")
+        info['board_presence'] = st.radio(r'*Board Presence', REQ_OPTIONS, horizontal=True)
+        
     # Sección 3: Comentarios Adicionales
-    st.markdown("<h4>Additional Comments</h4>", unsafe_allow_html=True)
-    comments = st.text_area(
-        label_visibility='hidden', label="a", placeholder='Write your comments here...')
-
-    info["additional_comments"] = comments
+    st.markdown("<h4>Additional Information</h4>", unsafe_allow_html=True)
+    info["travel"] = st.text_input(r"*Travel (Indicate the place of Delivery).", placeholder="San Juan del Río")
+    info["entity_po"] = st.text_input(r"*The entity that the PO will come from.", placeholder="Queretaro")
+    info["additional_comments"] = st.text_area(label="Additional Comments", placeholder='Write your comments here...')
 
     # Botón de envío
     enviar = st.form_submit_button(
@@ -226,10 +192,10 @@ with st.form(key='ict_assesment'):
     if enviar:
         
         current_datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
-        valid_email = validate_email(info['contact_email'])
-        if not valid_email:
-            st.error("Error!! Only Corporate emails are valid")
-            st.stop()
+        # valid_email = validate_email(info['contact_email'])
+        # if not valid_email:
+        #     st.error("Error!! Only Corporate emails are valid")
+        #     st.stop()
         
         errors_validation = validate_fields(info)
         if errors_validation:
@@ -296,8 +262,8 @@ with st.form(key='ict_assesment'):
                         with open(save_path, "wb") as f:
                             f.write(file.getbuffer())
                             
-                #st.write(new_opp)
-                #raise ValueError("Not uploaded to salesforce yet")
+                st.write(new_opp)
+                raise ValueError("Not uploaded to salesforce yet")
         
                 result =  st.session_state.salesforce.__getattr__('Opportunity').create(new_opp)
                 #result["success"] = True
