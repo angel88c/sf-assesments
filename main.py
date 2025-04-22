@@ -23,7 +23,7 @@ if 'target_page' not in st.session_state:
     # Get target page from URL
     url_params = st.query_params
     st.session_state.target_page = url_params.get("page", ["ict_assessment"])
-    print(st.session_state.target_page)
+    
     
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -33,7 +33,8 @@ def is_valid_email(email):
 
 def login_form():
     with st.form("login_form"):
-        email = st.text_input("Email", type="default", placeholder="Enter provided email")
+        st.header("Login")
+        email = st.text_input("Email", type="default", placeholder="Enter provided email", value="customer@ibtest.com")
         password = st.text_input("Password", type="password", placeholder="Enter provided password")
         submit_button = st.form_submit_button("Login")
         
@@ -67,15 +68,18 @@ def main():
     if not st.session_state['authenticated']:
         login_form()
     else:
-        target_page = st.session_state.target_page
+        
         if type(st.session_state.target_page) == list:
             target_page = st.session_state.target_page[0]        
-            
-        if target_page == "ICT_ASSESSMENT":
+        else:
+            target_page = st.session_state.target_page
+        
+        print(target_page)
+        if target_page == "ict_assessment":
             st.switch_page("pages/ict_assessment.py")
-        elif target_page == "IAT_ASSESSMENT":
+        elif target_page == "iat_assessment":
             st.switch_page("pages/iat_assessment.py")
-        elif target_page == "FCT_ASSESSMENT":
+        elif target_page == "fct_assessment":
             st.switch_page("pages/fct_assessment.py")
         else:
             st.switch_page("pages/ict_assessment.py")

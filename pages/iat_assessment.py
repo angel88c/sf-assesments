@@ -162,8 +162,8 @@ def create_iat_specific_sections(info):
     
     with st.container(border=True):
         st.markdown("<h4>Additional Information</h4>", unsafe_allow_html=True)
-        info["travel"] = st.text_input(r"*Travel (Indicate the place of Delivery).", placeholder="San Juan del Río")
-        info["entity_po"] = st.text_input(r"*The entity that the PO will come from.", placeholder="Queretaro")
+        info["travel"] = st.text_input(r"*Where do you want us to deliver?", placeholder="Company name, State, Country")
+        info["entity_po"] = st.text_input(r"*The entity that the PO will come from.", placeholder="Company name, State, Country")
         info["additional_comments"] = st.text_area(label="Additional Comments", placeholder='Write your comments here...')
 
 def main():

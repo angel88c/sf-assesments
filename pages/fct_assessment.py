@@ -78,7 +78,7 @@ def create_fct_specific_sections(info):
             info["ergonomy_specifications"] = st.text_input(label=".", label_visibility="hidden", placeholder='Ergonomy Specifications')
             info['osp_finish'] = st.radio('In the case of PCB, Does the product have OSP finish on TPs?', horizontal=True, index=1, options=YES_NO)
             info['quantity_uut'] = st.number_input(r"*How many units under test?", min_value=1)
-            info["fixture_vendor"] = st.selectbox("Fixture Vendor required (if apply):", FCT_FIXTURE_VENDORS)
+            info['fixture_vendor'] = st.text_input('Specify the preferred Fixture Vendor', placeholder='Circuit Check, Rematek, Arcadia, Juarez Technology, QxQ, etc.')
 
     with st.container(border=True):
         st.markdown("<h4>FCT System Assesment</h4>", unsafe_allow_html=True)
@@ -165,8 +165,8 @@ def create_fct_specific_sections(info):
         # Sección 3: Comentarios Adicionales
     with st.container(border=True):
         st.markdown("<h4>Additional Information</h4>", unsafe_allow_html=True)
-        info["travel"] = st.text_input(r"*Travel (Indicate the place of Delivery).", placeholder="San Juan del Río")
-        info["entity_po"] = st.text_input(r"*The entity that the PO will come from.", placeholder="Queretaro")
+        info["travel"] = st.text_input(r"*Where do you want us to deliver?", placeholder="Company name, State, Country")
+        info["entity_po"] = st.text_input(r"*The entity that the PO will come from.", placeholder="Company name, State, Country")
         info["additional_comments"] = st.text_area(label="Additional Comments", placeholder='Write your comments here...')
 
 def main():

@@ -68,7 +68,7 @@ def contact_section(data):
         {key_value('Contact Name', data['contact_name'])}
         {key_value('Phone Number', data['contact_phone'])}
         {key_value('Email Address', data['contact_email'])}
-        {key_value('Fixture Supplier', data['fixture_supplier'])}
+        {key_value('Fixture Vendor', data['fixture_vendor'])}
         <!-- Fixture Types -->
         <div class="section-title text-lg font-semibold text-gray-700">Uploaded File Types</div>
         {

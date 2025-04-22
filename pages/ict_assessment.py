@@ -79,7 +79,7 @@ def create_ict_specific_sections(info):
 
         col1, col2 = st.columns(2)
         with col2:
-            info['fixture_supplier'] = st.text_input('Specify the preferred Fixture Vendor', 
+            info['fixture_vendor'] = st.text_input('Specify the preferred Fixture Vendor', 
                                                      placeholder='Circuit Check, Rematek, Arcadia, Juarez Technology, QxQ, etc.')
         with col1:
             info['versions'] = st.number_input("How many versions?", 
@@ -179,8 +179,8 @@ def create_ict_specific_sections(info):
     # Sección 3: Comentarios Adicionales
     with st.container(border=True):
         subtitle_h4("Additional Information")
-        info["travel"] = st.text_input(r"*Travel (Indicate the place of Delivery).", placeholder="San Juan del Río")
-        info["entity_po"] = st.text_input(r"*The entity that the PO will come from.", placeholder="Queretaro")
+        info["travel"] = st.text_input(r"*Where do you want us to deliver?", placeholder="Company name, State, Country")
+        info["entity_po"] = st.text_input(r"*The entity that the PO will come from.", placeholder="Company name, State, Country")
         info["additional_comments"] = st.text_area(label="Additional Comments", placeholder='Write your comments here...')
 
 
