@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 import hashlib
 from urllib.parse import urlparse, parse_qs
 from pages.utils.global_styles import set_global_styles
+import requests
 
 # Load environment variables
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"), override=True)
@@ -39,19 +40,42 @@ def login_form():
         submit_button = st.form_submit_button("Login")
         
         if submit_button:
+            '''
             if not is_valid_email(email):
                 st.error("Please enter a valid email and password")
                 return False
+            '''
+            # Datos para la solicitud            
+            payload = {
+                "usr_name": email,
+                "password": password 
+            }
         
-            stored_password_hash = os.getenv("APP_PASSWORD")
-            entered_password_hash = hash_password(password)
-            
+            # stored_password_hash = os.getenv("APP_PASSWORD")
+            # entered_password_hash = stored_password_hash
+            try:
+                response = requests.post("http://localhost:35001/api/auth/signin", json=payload)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    st.session_state['authenticated'] = True
+                    st.session_state['token'] = data.get("token")  # Guardar el token en el store
+                    st.success("Login successful!")
+                    st.rerun()
+                else:
+                    st.error("Invalid credentials. Please try again.")
+                    return False                
+            except requests.exceptions.RequestException as e:
+                st.error(f"An error occurred: {e}")
+                return False
+            '''
             if stored_password_hash and entered_password_hash == stored_password_hash:
                 st.session_state['authenticated'] = True
                 st.rerun()
             else:
                 st.error("Incorrect password")
                 return False
+            '''
         
     return True
                 
