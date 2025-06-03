@@ -11,7 +11,7 @@ import streamlit as st
 st.set_page_config(initial_sidebar_state="collapsed")
 
 from pages.utils.base_assessment import BaseAssessment
-from pages.utils.ict_create_html import json_to_html
+from pages.utils.fix_create_html import json_to_html
 from pages.utils.constants import (
     YES_NO, REQ_OPTIONS, ACTIVATION_TYPES, 
     WELL_TYPES, SIZE_TYPES, OPTIONS
@@ -56,7 +56,7 @@ def generate_milestones(info, milestones):
         with col1: 
             status = st.radio("Select", options=["Yes", "No"], key=f"{item}_status", horizontal=True)
         with col2:
-            qty = st.text_input("Qty", key=f"{item}_qty")
+            qty = st.number_input("Qty", key=f"{item}_qty", value=0)
         with col3:
             comments = st.text_input("Comments", key=f"{item}_comments")
 
@@ -183,9 +183,9 @@ def main():
     """Main function to run the ICT assessment."""
     # Create ICT assessment instance
     ict_assessment = BaseAssessment(
-        assessment_type="FIX",
+        assessment_type="IAT",
         title="Fix Test Assessment",
-        projects_folder="1_In_Circuit Test (ICT)"
+        projects_folder="1_FIX Test (FIX)"
     )
     
     # Render the form with ICT-specific sections
