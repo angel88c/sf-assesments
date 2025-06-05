@@ -105,6 +105,8 @@ def main():
             st.switch_page("pages/iat_assessment.py")
         elif target_page == "fct_assessment":
             st.switch_page("pages/fct_assessment.py")
+        elif target_page == "fix_assessment":
+            st.switch_page("pages/fix_assessment.py")
         else:
             st.switch_page("pages/ict_assessment.py")
 
