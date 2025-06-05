@@ -15,11 +15,13 @@ sf-assessments/
 │   ├── ict_assessment.py     # ICT assessment page
 │   ├── iat_assessment.py     # IAT assessment page
 │   ├── fct_assessment.py     # FCT assessment page
+│   ├── fix_assessment.py     # FIX assessment page
 │   └── utils/                # Utility modules
 │       ├── base_assessment.py # Base assessment class
 │       ├── constants.py       # Constants and configuration
 │       ├── dates_info.py      # Date utilities
 │       ├── fct_create_html.py # FCT HTML report generator
+│       ├── fix_create_html.py # FIX HTML report generator
 │       ├── global_styles.py   # Global CSS styles
 │       ├── iat_create_html.py # IAT HTML report generator
 │       ├── ict_create_html.py # ICT HTML report generator
@@ -41,18 +43,21 @@ sf-assessments/
 ## Installation
 
 1. Clone the repository:
+
    ```
    git clone https://github.com/yourusername/sf-assessments.git
    cd sf-assessments
    ```
 
 2. Create and activate a virtual environment:
+
    ```
    python -m venv env
    source env/bin/activate  # On Windows: env\Scripts\activate
    ```
 
 3. Install dependencies:
+
    ```
    pip install -r requirements.txt
    ```
@@ -70,19 +75,23 @@ sf-assessments/
    TEMPLATE_ICT=/path/to/ict/template
    TEMPLATE_FCT=/path/to/fct/template
    TEMPLATE_IAT=/path/to/iat/template
+   TEMPLATE_FIX=/path/to/fix/template
    ```
 
 ## Usage
 
 1. Start the application:
+
    ```
    streamlit run main.py
    ```
 
 2. Navigate to the desired assessment type:
+
    - ICT Assessment: `/pages/ict_assessment.py`
    - FCT Assessment: `/pages/fct_assessment.py`
    - IAT Assessment: `/pages/iat_assessment.py`
+   - FIX Assessment: `/pages/fix_assessment.py`
 
 3. Fill out the assessment form and submit.
 
