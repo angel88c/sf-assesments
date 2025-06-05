@@ -1,8 +1,8 @@
 """
-ICT Assessment Module
+FIX Assessment Module
 
-This module provides the In Circuit Test assessment functionality.
-It extends the base assessment class with ICT-specific form fields and processing.
+This module provides the Fixtures assessment functionality.
+It extends the base assessment class with FIX-specific form fields and processing.
 """
 
 import streamlit as st
@@ -184,8 +184,8 @@ def main():
     # Create ICT assessment instance
     ict_assessment = BaseAssessment(
         assessment_type="IAT",
-        title="Fix Test Assessment",
-        projects_folder="1_FIX Test (FIX)"
+        title="Fixtures Test Assessment",
+        projects_folder="7_Fixtures (FIX)"
     )
     
     # Render the form with ICT-specific sections
