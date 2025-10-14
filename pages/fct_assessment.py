@@ -10,15 +10,13 @@ import streamlit as st
 st.set_page_config(initial_sidebar_state="collapsed")
 
 from pages.utils.global_styles import subtitle_h3
-from pages.utils.base_assessment import BaseAssessment
-from pages.utils.fct_create_html import json_to_html
+from pages.utils.base_assessment_refactored import BaseAssessment
 from pages.utils.constants import (
     YES_NO, FCT_HARDWARE_OPTIONS, FCT_SYSTEM_TYPES, FCT_PROCESS_TYPES,
     FCT_PRODUCT_FINISH, FCT_TEST_STRATEGIES, FCT_FIXTURE_VENDORS,
     FCT_CONNECTION_INTERFACES, FCT_STATION_TYPES, FCT_STUDIES_OPTIONS
 )
-
-from main import hash_password
+from pages.utils.fct_create_html import json_to_html
 
 # Check authentication
 if 'authenticated' not in st.session_state or not st.session_state.authenticated:

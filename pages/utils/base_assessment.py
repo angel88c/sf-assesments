@@ -212,6 +212,16 @@ class BaseAssessment:
                 with open(path_html, 'w') as file:
                     file.write(html_data)
             
+            # Generate SharePoint URL for this specific project
+            base_sharepoint_url = config("PATH_TO_SHAREPOINT")
+            # Get relative path from base path
+            relative_path = upload_files_folder.replace(config("PATH_FILE"), "").strip(os.sep)
+            # Construct full SharePoint URL
+            if base_sharepoint_url.endswith("/"):
+                project_sharepoint_url = f"{base_sharepoint_url}{relative_path.replace(os.sep, '/')}"
+            else:
+                project_sharepoint_url = f"{base_sharepoint_url}/{relative_path.replace(os.sep, '/')}"
+            
             # Create Salesforce opportunity
             opportunity_name = self.info["project_name"]
             stage_name = "New Request"
@@ -221,7 +231,7 @@ class BaseAssessment:
                 "StageName": stage_name,
                 "CloseDate": get_last_weekday_of_next_month().strftime("%Y-%m-%d"),
                 "Assessment_Date__c": datetime.now().strftime("%Y-%m-%d"),
-                "Path__c": config("PATH_TO_SHAREPOINT"),                        
+                "Path__c": project_sharepoint_url,  # URL específica del proyecto                        
                 "BU__c": self.assessment_type
             }
             

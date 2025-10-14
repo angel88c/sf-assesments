@@ -7,24 +7,22 @@ It extends the base assessment class with IAT-specific form fields and processin
 
 import streamlit as st
 
+# Check authentication
+if 'authenticated' not in st.session_state or not st.session_state.authenticated:
+    st.warning("Please log in to access this page")
+    st.switch_page("main.py")
+    #st.stop()  # This stops execution if not authenticated
+
 st.set_page_config(initial_sidebar_state="collapsed")
 
 from pages.utils.global_styles import subtitle_h3
-from pages.utils.base_assessment import BaseAssessment
+from pages.utils.base_assessment_refactored import BaseAssessment
 from pages.utils.iat_create_html import json_to_html
 from pages.utils.constants import (
     YES_NO, IAT_MILESTONES, IAT_STATION_TYPES, IAT_PROCESS_TYPES,
     IAT_UNIT_HANDLE_MODES, IAT_DEVICES_UNDER_PROCESS
 )
 
-from main import hash_password
-
-# Check authentication
-if 'authenticated' not in st.session_state or not st.session_state.authenticated:
-    st.warning("Please log in to access this page")
-    st.switch_page("main.py")
-    #st.stop()  # This stops execution if not authenticated
-    
 # Define IAT-specific file types
 # IAT_FILE_TYPES = [
 #     '*CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)',

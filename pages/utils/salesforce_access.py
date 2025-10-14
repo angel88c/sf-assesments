@@ -7,6 +7,7 @@ It handles authentication, connection, and data retrieval operations.
 
 import os
 import requests
+import functools
 import streamlit as st
 from dotenv import load_dotenv
 from simple_salesforce import Salesforce
@@ -31,6 +32,10 @@ def connect_to_salesforce():
             "consumer_key": os.getenv('SALESFORCE_CONSUMER_KEY'),
             "consumer_secret": os.getenv('SALESFORCE_CONSUMER_SECRET')
         }
+        TIMEOUT = os.getenv("SF_TIMEOUT")
+        TIMEOUT = int(TIMEOUT)
+        sessionT = requests.Session()
+        sessionT.session = functools.partial(sessionT.request, timeout=TIMEOUT)
         
         # Connect to Salesforce
         sf = Salesforce(
@@ -38,7 +43,8 @@ def connect_to_salesforce():
             password=sf_credentials["password"],
             security_token=sf_credentials["security_token"],
             consumer_key=sf_credentials["consumer_key"],
-            consumer_secret=sf_credentials["consumer_secret"]
+            consumer_secret=sf_credentials["consumer_secret"],
+            session=sessionT
         )
         
         # Get OAuth token
@@ -51,7 +57,7 @@ def connect_to_salesforce():
             'password': sf_credentials["password"] + sf_credentials["security_token"]
         }
 
-        response = requests.post(token_url, data=payload)
+        response = requests.post(token_url, data=payload, timeout=TIMEOUT)
         token_data = response.json()
 
         return sf

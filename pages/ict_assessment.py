@@ -10,14 +10,13 @@ import streamlit as st
 # Set page configuration - must be the first Streamlit command
 st.set_page_config(initial_sidebar_state="collapsed")
 
-from pages.utils.base_assessment import BaseAssessment
+from pages.utils.base_assessment_refactored import BaseAssessment
 from pages.utils.ict_create_html import json_to_html
 from pages.utils.constants import (
     YES_NO, REQ_OPTIONS, ACTIVATION_TYPES, 
     WELL_TYPES, SIZE_TYPES, OPTIONS
 )
 from pages.utils.global_styles import subtitle_h2, subtitle_h3, subtitle_h4
-from main import hash_password
 
 # Check authentication
 if 'authenticated' not in st.session_state or not st.session_state.authenticated:
