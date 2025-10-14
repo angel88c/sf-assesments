@@ -45,7 +45,7 @@ numpy==1.26.4
 openpyxl==3.1.5
 packaging==24.0
 pandas==2.2.2
-pillow==10.3.0
+pillow==11.0.0
 platformdirs==4.5.0
 plotly==6.2.0
 pluggy==1.6.0
