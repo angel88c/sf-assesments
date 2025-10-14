@@ -129,8 +129,8 @@ celerybeat.pid
 
 # Environments
 .env
-.env.example
-.env.sharepoint
+.env.*
+!.env.example.template
 .venv
 env/
 venv/
