@@ -1,0 +1,69 @@
+# Streamlit Configuration File
+# This file configures global settings for your Streamlit app
+
+# ============================================================================
+# THEME CONFIGURATION
+# ============================================================================
+[theme]
+# Primary theme: "light" or "dark"
+base = "light"
+
+# Optional: Customize theme colors
+# primaryColor = "#F63366"
+# backgroundColor = "#FFFFFF"
+# secondaryBackgroundColor = "#F0F2F6"
+# textColor = "#262730"
+# font = "sans serif"
+
+# ============================================================================
+# BROWSER CONFIGURATION
+# ============================================================================
+[browser]
+# Disable usage stats collection
+gatherUsageStats = false
+
+# Server address (use for custom domains)
+# serverAddress = "localhost"
+
+# Server port
+# serverPort = 8501
+
+# ============================================================================
+# SERVER CONFIGURATION
+# ============================================================================
+[server]
+# Enable CORS for embedding
+enableCORS = false
+
+# Enable XSRF protection
+enableXsrfProtection = true
+
+# Max upload size in MB (default: 200)
+maxUploadSize = 200
+
+# Enable WebSocket compression
+enableWebsocketCompression = true
+
+# ============================================================================
+# RUNNER CONFIGURATION
+# ============================================================================
+[runner]
+# How to handle script reruns
+# Options: "always", "never", "onSave"
+magicEnabled = true
+
+# Install requirements.txt dependencies
+installTracer = false
+
+# Fix random seed for reproducibility
+# fixRandomSeed = false
+
+# ============================================================================
+# LOGGER CONFIGURATION
+# ============================================================================
+[logger]
+# Logging level: "debug", "info", "warning", "error", "critical"
+level = "info"
+
+# Message format
+messageFormat = "%(asctime)s %(message)s"
