@@ -5,7 +5,6 @@ This module provides a service layer for storage operations.
 It abstracts the storage provider and provides high-level operations.
 """
 
-import os
 import streamlit as st
 from pathlib import Path
 from typing import List, Dict, Optional
@@ -57,9 +56,10 @@ class StorageService:
             # Create SharePoint provider
             logger.info("Creating SharePoint storage provider")
             
-            # For SharePoint, base_path should be a folder prefix within SharePoint
-            # (e.g., "01_2025"), not a local filesystem path
-            sharepoint_base_path = os.getenv('SHAREPOINT_BASE_PATH', '')
+            # Get base_path from settings (works for both local .env and Streamlit Cloud secrets)
+            sharepoint_base_path = self.settings.sharepoint.base_path
+            
+            logger.info(f"SharePoint base_path: '{sharepoint_base_path}'")
             
             return SharePointStorageProvider(
                 tenant_id=self.settings.azure.tenant_id,
