@@ -19,6 +19,14 @@ from pages.utils.global_styles import set_global_styles
 setup_logging(log_level="INFO")
 logger = get_logger(__name__)
 
+# TEMPORARY: Clear cache button for debugging
+# Remove this after confirming base_path works correctly
+if st.sidebar.button("🔄 Clear Cache (Debug)", help="Clear cached connections and reload config"):
+    st.cache_data.clear()
+    st.cache_resource.clear()
+    st.success("✅ Cache cleared! App will reload with fresh config.")
+    st.rerun()
+
 # Initialize session state
 if 'authenticated' not in st.session_state:
     st.session_state['authenticated'] = False
