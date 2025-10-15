@@ -62,8 +62,15 @@ installTracer = false
 # LOGGER CONFIGURATION
 # ============================================================================
 [logger]
-# Logging level: "debug", "info", "warning", "error", "critical"
-level = "info"
+# Logging level for Streamlit internals
+# Options: "debug", "info", "warning", "error", "critical"
+# Production recommendation: "warning" or "error"
+level = "warning"
 
 # Message format
 messageFormat = "%(asctime)s %(message)s"
+
+# Note: Application logs are configured separately in core/logging_config.py
+# and automatically adjust based on environment:
+#   - Local development: INFO level
+#   - Streamlit Cloud: WARNING level

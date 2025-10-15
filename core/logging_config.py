@@ -3,28 +3,66 @@ Logging Configuration Module
 
 This module provides centralized logging configuration for the iBtest Assessment application.
 It sets up structured logging with appropriate formatters and handlers.
+
+Environment-aware logging:
+- Development (local): INFO level - Detailed logs
+- Production (Streamlit Cloud): WARNING level - Only important messages
 """
 
 import logging
 import sys
+import os
 from pathlib import Path
 from typing import Optional
 from datetime import datetime
 
+# Try to import streamlit to detect cloud environment
+try:
+    import streamlit as st
+    HAS_STREAMLIT = True
+except ImportError:
+    HAS_STREAMLIT = False
+
+
+def _is_production() -> bool:
+    """
+    Detect if running in production (Streamlit Cloud).
+    
+    Returns:
+        True if in production, False if in development.
+    """
+    # Check if running on Streamlit Cloud
+    if HAS_STREAMLIT and hasattr(st, 'secrets') and len(st.secrets) > 0:
+        return True
+    
+    # Check environment variable
+    if os.getenv('STREAMLIT_RUNTIME_ENV') == 'cloud':
+        return True
+    
+    return False
+
 
 def setup_logging(
-    log_level: str = "INFO",
+    log_level: Optional[str] = None,
     log_file: Optional[Path] = None,
     log_format: Optional[str] = None
 ) -> None:
     """
     Set up logging configuration for the application.
     
+    Automatically adjusts log level based on environment:
+    - Development (local): INFO level - Detailed logs for debugging
+    - Production (Streamlit Cloud): WARNING level - Only important messages
+    
     Args:
         log_level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL).
+                   If None, automatically determined based on environment.
         log_file: Optional path to log file. If None, logs only to console.
         log_format: Optional custom log format string.
     """
+    # Auto-detect log level based on environment if not specified
+    if log_level is None:
+        log_level = "WARNING" if _is_production() else "INFO"
     if log_format is None:
         log_format = (
             '%(asctime)s - %(name)s - %(levelname)s - '
