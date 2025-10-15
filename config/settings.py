@@ -175,7 +175,9 @@ class Settings:
         azure = None
         sharepoint = None
         if storage.provider.lower() == 'sharepoint':
+            # Use unified config value getter that works for both env and secrets
             if is_cloud:
+                # Streamlit Cloud: read from st.secrets
                 azure = AzureConfig(
                     tenant_id=cls._get_config_value('tenant_id', 'sharepoint'),
                     client_id=cls._get_config_value('client_id', 'sharepoint'),
@@ -187,16 +189,51 @@ class Settings:
                     base_path=cls._get_config_value('base_path', 'sharepoint', '')
                 )
             else:
-                azure = AzureConfig(
-                    tenant_id=cls._get_required_env('AZURE_TENANT_ID'),
-                    client_id=cls._get_required_env('AZURE_CLIENT_ID'),
-                    client_secret=cls._get_required_env('AZURE_CLIENT_SECRET')
-                )
-                sharepoint = SharePointConfig(
-                    site_id=cls._get_required_env('SHAREPOINT_SITE_ID'),
-                    drive_id=cls._get_required_env('SHAREPOINT_DRIVE_ID'),
-                    base_path=os.getenv('SHAREPOINT_BASE_PATH', '')
-                )
+                # Local: read from .env OR local secrets.toml (if using streamlit run)
+                # Try secrets.toml first (if running with streamlit), then fall back to .env
+                try:
+                    # If running with streamlit locally, secrets.toml is available
+                    if HAS_STREAMLIT and hasattr(st, 'secrets'):
+                        azure = AzureConfig(
+                            tenant_id=cls._get_config_value('tenant_id', 'sharepoint'),
+                            client_id=cls._get_config_value('client_id', 'sharepoint'),
+                            client_secret=cls._get_config_value('client_secret', 'sharepoint')
+                        )
+                        sharepoint = SharePointConfig(
+                            site_id=cls._get_config_value('site_id', 'sharepoint'),
+                            drive_id=cls._get_config_value('drive_id', 'sharepoint'),
+                            base_path=cls._get_config_value('base_path', 'sharepoint', '')
+                        )
+                    else:
+                        # Pure .env without streamlit
+                        azure = AzureConfig(
+                            tenant_id=cls._get_required_env('AZURE_TENANT_ID'),
+                            client_id=cls._get_required_env('AZURE_CLIENT_ID'),
+                            client_secret=cls._get_required_env('AZURE_CLIENT_SECRET')
+                        )
+                        sharepoint = SharePointConfig(
+                            site_id=cls._get_required_env('SHAREPOINT_SITE_ID'),
+                            drive_id=cls._get_required_env('SHAREPOINT_DRIVE_ID'),
+                            base_path=os.getenv('SHAREPOINT_BASE_PATH', '')
+                        )
+                except:
+                    # Fallback to .env
+                    azure = AzureConfig(
+                        tenant_id=cls._get_required_env('AZURE_TENANT_ID'),
+                        client_id=cls._get_required_env('AZURE_CLIENT_ID'),
+                        client_secret=cls._get_required_env('AZURE_CLIENT_SECRET')
+                    )
+                    sharepoint = SharePointConfig(
+                        site_id=cls._get_required_env('SHAREPOINT_SITE_ID'),
+                        drive_id=cls._get_required_env('SHAREPOINT_DRIVE_ID'),
+                        base_path=os.getenv('SHAREPOINT_BASE_PATH', '')
+                    )
+            
+            # Log the loaded base_path for debugging
+            if sharepoint:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f"✅ SharePoint config loaded - base_path: '{sharepoint.base_path}'")
         
         return cls(
             salesforce=salesforce,
