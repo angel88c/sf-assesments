@@ -17,7 +17,7 @@ from typing import Callable, Dict, List, Optional
 import streamlit as st
 
 from services.salesforce_service import get_salesforce_service, get_unique_account_dict
-from services.storage_service import StorageService
+from services.storage_service import get_storage_service
 from pages.utils.dates_info import get_last_weekday_of_next_month, get_date_after_next_working_days
 from pages.utils.global_styles import set_global_styles, load_ibtest_logo, subtitle_h3
 from pages.utils.validations import validate_email, validate_fields
@@ -52,10 +52,10 @@ class BaseAssessment:
         self.info: Dict = {}
         self.year = str(datetime.today().year)
         
-        # Initialize services
+        # Initialize services (cached for performance)
         self.settings = get_settings()
-        self.salesforce_service = get_salesforce_service()
-        self.storage_service = StorageService()
+        self.salesforce_service = get_salesforce_service()  # Cached connection
+        self.storage_service = get_storage_service()  # Cached connection
         
         logger.info(f"Initialized {assessment_type} assessment")
     

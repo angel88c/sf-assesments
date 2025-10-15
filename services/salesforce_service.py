@@ -278,10 +278,13 @@ def get_salesforce_service() -> SalesforceService:
     return SalesforceService()
 
 
-@st.cache_resource
+@st.cache_data(ttl=600)  # Cache for 10 minutes
 def get_unique_account_dict() -> Dict[str, str]:
     """
     Get cached dictionary of unique Salesforce accounts.
+    
+    Cached for 10 minutes to improve performance while allowing updates.
+    Use st.cache_data instead of cache_resource because this is data, not a connection.
     
     Returns:
         Dictionary mapping account IDs to account names.

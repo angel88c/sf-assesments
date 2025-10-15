@@ -6,6 +6,7 @@ It abstracts the storage provider and provides high-level operations.
 """
 
 import os
+import streamlit as st
 from pathlib import Path
 from typing import List, Dict, Optional
 from datetime import datetime
@@ -248,3 +249,18 @@ class StorageService:
         except Exception as e:
             logger.error(f"Failed to save HTML file: {e}")
             raise StorageError(f"Failed to save HTML file: {e}")
+
+
+# Cached function for Streamlit
+@st.cache_resource
+def get_storage_service() -> StorageService:
+    """
+    Get cached StorageService instance with persistent connection.
+    
+    This improves performance by reusing the storage provider connection,
+    especially important for SharePoint which has connection overhead.
+    
+    Returns:
+        StorageService instance with initialized provider.
+    """
+    return StorageService()

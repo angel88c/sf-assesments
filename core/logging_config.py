@@ -62,7 +62,7 @@ def setup_logging(
     """
     # Auto-detect log level based on environment if not specified
     if log_level is None:
-        log_level = "WARNING" if _is_production() else "INFO"
+        log_level = "INFO"  # Always INFO - logging overhead is negligible
     if log_format is None:
         log_format = (
             '%(asctime)s - %(name)s - %(levelname)s - '
