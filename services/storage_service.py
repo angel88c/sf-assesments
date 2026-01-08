@@ -16,6 +16,10 @@ from core.exceptions import StorageError
 from core.logging_config import get_logger
 from pages.utils.constants import COUNTRIES_DICT
 
+# Constants for subdirectories within templates
+ICT_UPLOAD_SUBDIR = Path("1_Customer_Info") / "7_ALL_Info_Shared"
+DEFAULT_UPLOAD_SUBDIR = Path("1_Customer_Info") / "3_ALL_Info_Shared"
+
 logger = get_logger(__name__)
 
 
@@ -134,30 +138,14 @@ class StorageService:
             
             logger.info(f"Creating project folder: {project_path}")
             
-            # Check if project already exists
-            # Use _folder_exists_raw for SharePoint to avoid double base_path
-            if hasattr(self.provider, '_folder_exists_raw'):
-                # SharePoint provider - use raw method
-                exists = self.provider._folder_exists_raw(project_path)
-            else:
-                # Local provider - use normal method
-                exists = self.provider.folder_exists(project_path)
-            
-            if exists:
+            if self.provider.folder_exists(project_path):
                 raise StorageError(
                     f"Project '{project_name}' already exists. "
                     "Please contact Sales Manager to update your requirement."
                 )
-            
+
             # Create project folder
-            # Use _create_folder_raw for SharePoint to avoid double base_path
-            # project_path already includes base_path from get_full_path()
-            if hasattr(self.provider, '_create_folder_raw'):
-                # SharePoint provider - use raw method
-                self.provider._create_folder_raw(project_path)
-            else:
-                # Local provider - use normal method
-                self.provider.create_folder(project_path)
+            self.provider.create_folder(project_path)
             
             # Copy template
             template_path = str(self.get_template_path(assessment_type))
@@ -195,9 +183,11 @@ class StorageService:
         try:
             # Determine destination folder based on assessment type
             if assessment_type == "ICT":
-                destination = str(Path(project_path) / "1_Customer_Info" / "7_ALL_Info_Shared")
+                destination_subdir = ICT_UPLOAD_SUBDIR
             else:
-                destination = str(Path(project_path) / "1_Customer_Info" / "3_ALL_Info_Shared")
+                destination_subdir = DEFAULT_UPLOAD_SUBDIR
+            
+            destination = str(Path(project_path) / destination_subdir)
             
             logger.info(f"Uploading {len(files)} files to {destination}")
             

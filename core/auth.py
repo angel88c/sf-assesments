@@ -12,6 +12,7 @@ from functools import wraps
 from typing import Optional
 from .exceptions import AuthenticationError
 from config import get_settings
+from pages.utils.auth import require_authentication  # compatibility re-export
 
 
 class AuthService:
@@ -52,7 +53,9 @@ class AuthService:
         """
         if not email:
             return False
-        return re.match(r"[^@]+@[^@]+\.[^@]+", email) is not None
+        # A more robust regex for email validation
+        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        return re.match(email_regex, email) is not None
     
     def authenticate(self, email: str, password: str) -> bool:
         """
@@ -143,31 +146,3 @@ class AuthService:
                     st.error(str(e))
 
 
-def require_authentication(func):
-    """
-    Decorator to require authentication for a page.
-    
-    This decorator checks if the user is authenticated before allowing access
-    to a page. If not authenticated, it redirects to the login page.
-    
-    Usage:
-        @require_authentication
-        def my_protected_page():
-            # Page content
-            pass
-    
-    Args:
-        func: Function to decorate.
-        
-    Returns:
-        Wrapped function that checks authentication.
-    """
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if not AuthService.is_authenticated():
-            st.warning("Please log in to access this page")
-            st.switch_page("main.py")
-            return None
-        return func(*args, **kwargs)
-    
-    return wrapper

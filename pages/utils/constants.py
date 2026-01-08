@@ -33,6 +33,42 @@ COUNTRIES_DICT = {'Mexico': 'MX',
                   'Other': 'OTHER'
             }
 
+
+#FCT FILE TYPES
+FCT_FILE_TYPES = {
+    '*CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)': False,
+    '*Gerber files': False,
+    'Schematics (pdf)': False,
+    'Test Spec (pdf, doc)': False,
+    'BOMS': False,
+    'SOW': False,
+    'Drawings (2d, 3d)': False,
+}
+
+#FIX FILE TYPES
+FIX_FILE_TYPES = {
+    '*CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)': False,
+    'Gerber files': False,
+    'Schematics (pdf)': False,
+    'BOMs of each version': False,
+    '2D Drawings (.dwg, .dxf, .pfd, .tif)': False,
+    '3D Drawings (.step, .igs, .x_t)': False,
+    'Test Spec (pdf, doc)': False,
+    'Customer\'s SOW': False,
+    'Physical Samples': False,
+}
+
+#ICT FILE TYPES
+ICT_FILE_TYPES = {
+    '*CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)': False,
+    '*BOM': False,
+    'Gerber files': False,
+    'Schematics (pdf)': False,
+    'Test Spec (pdf, doc)': False,
+    'Fixture SOW': False,
+    'Board directory (.tar.gz, .tar)': False,
+}
+
 # IAT
 IAT_MILESTONES = [r'*Drawings (2D, 3D) .step files, .cad?',
                   r'*Process Spec?',

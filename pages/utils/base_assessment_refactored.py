@@ -260,29 +260,29 @@ class BaseAssessment:
     
     def _get_sharepoint_url(self, project_path: str) -> str:
         """
-        Generate SharePoint URL for the project folder.
-        
+        Generate the full SharePoint URL for a given project path.
+
+        This method constructs the final URL by combining the base SharePoint path
+        from settings with the project-specific path.
+
         Args:
-            project_path: Relative path to the project folder (from StorageService).
-                         This path already includes SHAREPOINT_BASE_PATH if configured.
-            
+            project_path (str): The relative path to the project folder, as returned
+                              by the StorageService. This path is expected to already
+                              include any configured base path (e.g., '01_2025').
+
         Returns:
-            Full SharePoint URL to the project folder.
+            str: The full, absolute URL to the project folder in SharePoint.
         """
-        # Get base SharePoint URL from settings
         base_url = self.settings.storage.sharepoint_path
-        
-        # Clean the project path (it already includes base_path from StorageService)
-        from pathlib import Path
+
+        # Ensure the project path uses forward slashes for URL compatibility
         project_relative = str(Path(project_path)).replace("\\", "/").lstrip("/")
-        
-        # Construct full SharePoint URL
-        # Note: project_relative already includes SHAREPOINT_BASE_PATH (e.g., "01_2025/1_ICT/...")
-        # because SharePointStorageProvider.get_full_path() adds it
-        if base_url.endswith("/"):
-            sharepoint_url = f"{base_url}{project_relative}"
-        else:
-            sharepoint_url = f"{base_url}/{project_relative}"
+
+        # Combine base URL and project path, ensuring a single slash between them
+        if not base_url.endswith('/'):
+            base_url += '/'
+
+        sharepoint_url = f"{base_url}{project_relative}"
         
         logger.info(f"Generated SharePoint URL: {sharepoint_url}")
         return sharepoint_url
@@ -338,14 +338,24 @@ class BaseAssessment:
         html_converter: Callable
     ) -> bool:
         """
-        Process the form submission.
-        
+        Orchestrates the entire form submission process.
+
+        This method performs the following steps:
+        1. Validates the submitted form data.
+        2. Prepares customer information.
+        3. Creates the project folder structure in the configured storage (local or SharePoint).
+        4. Uploads any provided files.
+        5. Generates and saves an HTML report of the assessment.
+        6. Creates a corresponding opportunity in Salesforce with a link to the project folder.
+
         Args:
-            uploaded_files: List of uploaded files
-            html_converter: Function to convert info to HTML
-            
+            uploaded_files (List): A list of files uploaded via the Streamlit form.
+            html_converter (Callable): A function that takes the form data dictionary
+                                     and returns an HTML string representation.
+
         Returns:
-            True if submission was successful, False otherwise.
+            bool: True if the submission process completes successfully, False otherwise.
+                  Errors are displayed to the user via `st.error`.
         """
         try:
             logger.info(f"Processing {self.assessment_type} assessment submission")

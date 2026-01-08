@@ -85,156 +85,96 @@ class Settings:
     def _is_streamlit_cloud(cls) -> bool:
         """Check if running on Streamlit Cloud."""
         return HAS_STREAMLIT and hasattr(st, 'secrets') and len(st.secrets) > 0
-    
+
     @classmethod
-    def _get_config_value(cls, key: str, section: Optional[str] = None, default: Any = None) -> Any:
+    def _get_config_value(cls, key: str, section: Optional[str] = None, default: Any = None, required: bool = True) -> Any:
         """
-        Get configuration value from st.secrets (Streamlit Cloud) or environment variables (local).
-        
-        Args:
-            key: Configuration key name.
-            section: Optional section name for st.secrets (e.g., 'salesforce').
-            default: Default value if not found.
-            
-        Returns:
-            Configuration value.
+        Get a configuration value from st.secrets or environment variables.
+        Priority:
+        1. Streamlit secrets (if on Streamlit Cloud or running with `streamlit run` locally)
+        2. Environment variables
         """
-        if cls._is_streamlit_cloud():
-            # Running on Streamlit Cloud - use st.secrets
+        value = None
+        # 1. Try Streamlit secrets
+        if HAS_STREAMLIT and hasattr(st, 'secrets'):
             try:
                 if section:
-                    return st.secrets[section][key]
+                    value = st.secrets[section][key]
                 else:
-                    return st.secrets[key]
+                    value = st.secrets[key]
             except (KeyError, AttributeError):
-                if default is not None:
-                    return default
-                raise ValueError(f"Required secret '{section}.{key if section else key}' not found in st.secrets")
-        else:
-            # Running locally - use environment variables
-            value = os.getenv(key.upper() if not section else f"{section.upper()}_{key.upper()}", default)
-            if value is None and default is None:
-                # Try without section prefix
-                value = os.getenv(key.upper(), default)
-            return value
-    
+                pass  # Not found in secrets, will try environment variables
+
+        # 2. Try environment variables if not found in secrets
+        if value is None:
+            env_var_name = f"{section.upper()}_{key.upper()}" if section else key.upper()
+            value = os.getenv(env_var_name)
+
+        # 3. Use default if still not found
+        if value is None:
+            value = default
+
+        # 4. Raise error if required and still not found
+        if value is None and required and default is None:
+            env_var_name = f"{section.upper()}_{key.upper()}" if section else key.upper()
+            raise ValueError(f"Required configuration '{env_var_name}' not found in st.secrets or environment variables.")
+
+        return value
+
     @classmethod
     def load_from_env(cls, env_path: Optional[Path] = None) -> 'Settings':
         """
         Load settings from environment variables or Streamlit secrets.
-        
-        Automatically detects the environment:
-        - Streamlit Cloud: Reads from st.secrets (secrets.toml)
-        - Local development: Reads from .env file
-        
-        Args:
-            env_path: Optional path to .env file. If None, searches in parent directories.
-            
-        Returns:
-            Settings instance with all configuration loaded.
-            
-        Raises:
-            ValueError: If required configuration values are missing.
         """
-        # Load .env file only if running locally
         if not cls._is_streamlit_cloud():
-            if env_path is None:
-                env_path = Path(__file__).parent.parent / ".env"
-            load_dotenv(env_path, override=True)
-        
-        # Detect environment
-        is_cloud = cls._is_streamlit_cloud()
-        
-        # Validate and load Salesforce config
+            env_path = env_path or Path(__file__).parent.parent / ".env"
+            if env_path.exists():
+                load_dotenv(env_path, override=True)
+
+        # Load Salesforce config
         salesforce = SalesforceConfig(
-            username=cls._get_config_value('username', 'salesforce') if is_cloud else cls._get_required_env('SALESFORCE_USERNAME'),
-            password=cls._get_config_value('password', 'salesforce') if is_cloud else cls._get_required_env('SALESFORCE_PASSWORD'),
-            security_token=cls._get_config_value('security_token', 'salesforce') if is_cloud else cls._get_required_env('SALESFORCE_SECURITY_TOKEN'),
-            consumer_key=cls._get_config_value('consumer_key', 'salesforce') if is_cloud else cls._get_required_env('SALESFORCE_CONSUMER_KEY'),
-            consumer_secret=cls._get_config_value('consumer_secret', 'salesforce') if is_cloud else cls._get_required_env('SALESFORCE_CONSUMER_SECRET'),
-            token_url=cls._get_config_value('token_url', 'salesforce', 'https://login.salesforce.com/services/oauth2/token'),
-            timeout=int(cls._get_config_value('timeout', 'salesforce', 40))
+            username=cls._get_config_value('username', 'salesforce'),
+            password=cls._get_config_value('password', 'salesforce'),
+            security_token=cls._get_config_value('security_token', 'salesforce'),
+            consumer_key=cls._get_config_value('consumer_key', 'salesforce'),
+            consumer_secret=cls._get_config_value('consumer_secret', 'salesforce'),
+            token_url=cls._get_config_value('token_url', 'salesforce', default='https://login.salesforce.com/services/oauth2/token'),
+            timeout=int(cls._get_config_value('timeout', 'salesforce', default=40))
         )
-        
-        # Validate and load Storage config
+
+        # Load Storage config
         storage = StorageConfig(
-            base_path=Path(cls._get_config_value('path_file', 'storage') if is_cloud else cls._get_required_env('PATH_FILE')),
-            sharepoint_path=cls._get_config_value('path_to_sharepoint', 'storage') if is_cloud else cls._get_required_env('PATH_TO_SHAREPOINT'),
-            template_ict=Path(cls._get_config_value('template_ict', 'storage') if is_cloud else cls._get_required_env('TEMPLATE_ICT')),
-            template_fct=Path(cls._get_config_value('template_fct', 'storage') if is_cloud else cls._get_required_env('TEMPLATE_FCT')),
-            template_iat=Path(cls._get_config_value('template_iat', 'storage') if is_cloud else cls._get_required_env('TEMPLATE_IAT')),
-            provider=cls._get_config_value('provider', 'storage', 'local')
+            base_path=Path(cls._get_config_value('path_file', 'storage')),
+            sharepoint_path=cls._get_config_value('path_to_sharepoint', 'storage'),
+            template_ict=Path(cls._get_config_value('template_ict', 'storage')),
+            template_fct=Path(cls._get_config_value('template_fct', 'storage')),
+            template_iat=Path(cls._get_config_value('template_iat', 'storage')),
+            provider=cls._get_config_value('provider', 'storage', default='local')
         )
-        
-        # Validate and load Auth config
+
+        # Load Auth config
         auth = AuthConfig(
-            password_hash=cls._get_config_value('password_hash', 'auth') if is_cloud else cls._get_required_env('APP_PASSWORD')
+            password_hash=cls._get_config_value('password_hash', section='auth', required=True)
         )
-        
-        # Load Azure and SharePoint config (optional, only needed for SharePoint)
-        azure = None
-        sharepoint = None
+
+        # Load optional Azure and SharePoint config
+        azure, sharepoint = None, None
         if storage.provider.lower() == 'sharepoint':
-            # Use unified config value getter that works for both env and secrets
-            if is_cloud:
-                # Streamlit Cloud: read from st.secrets
-                azure = AzureConfig(
-                    tenant_id=cls._get_config_value('tenant_id', 'sharepoint'),
-                    client_id=cls._get_config_value('client_id', 'sharepoint'),
-                    client_secret=cls._get_config_value('client_secret', 'sharepoint')
-                )
-                sharepoint = SharePointConfig(
-                    site_id=cls._get_config_value('site_id', 'sharepoint'),
-                    drive_id=cls._get_config_value('drive_id', 'sharepoint'),
-                    base_path=cls._get_config_value('base_path', 'sharepoint', '')
-                )
-            else:
-                # Local: read from .env OR local secrets.toml (if using streamlit run)
-                # Try secrets.toml first (if running with streamlit), then fall back to .env
-                try:
-                    # If running with streamlit locally, secrets.toml is available
-                    if HAS_STREAMLIT and hasattr(st, 'secrets'):
-                        azure = AzureConfig(
-                            tenant_id=cls._get_config_value('tenant_id', 'sharepoint'),
-                            client_id=cls._get_config_value('client_id', 'sharepoint'),
-                            client_secret=cls._get_config_value('client_secret', 'sharepoint')
-                        )
-                        sharepoint = SharePointConfig(
-                            site_id=cls._get_config_value('site_id', 'sharepoint'),
-                            drive_id=cls._get_config_value('drive_id', 'sharepoint'),
-                            base_path=cls._get_config_value('base_path', 'sharepoint', '')
-                        )
-                    else:
-                        # Pure .env without streamlit
-                        azure = AzureConfig(
-                            tenant_id=cls._get_required_env('AZURE_TENANT_ID'),
-                            client_id=cls._get_required_env('AZURE_CLIENT_ID'),
-                            client_secret=cls._get_required_env('AZURE_CLIENT_SECRET')
-                        )
-                        sharepoint = SharePointConfig(
-                            site_id=cls._get_required_env('SHAREPOINT_SITE_ID'),
-                            drive_id=cls._get_required_env('SHAREPOINT_DRIVE_ID'),
-                            base_path=os.getenv('SHAREPOINT_BASE_PATH', '')
-                        )
-                except:
-                    # Fallback to .env
-                    azure = AzureConfig(
-                        tenant_id=cls._get_required_env('AZURE_TENANT_ID'),
-                        client_id=cls._get_required_env('AZURE_CLIENT_ID'),
-                        client_secret=cls._get_required_env('AZURE_CLIENT_SECRET')
-                    )
-                    sharepoint = SharePointConfig(
-                        site_id=cls._get_required_env('SHAREPOINT_SITE_ID'),
-                        drive_id=cls._get_required_env('SHAREPOINT_DRIVE_ID'),
-                        base_path=os.getenv('SHAREPOINT_BASE_PATH', '')
-                    )
-            
-            # Log the loaded base_path for debugging
+            azure = AzureConfig(
+                tenant_id=cls._get_config_value('tenant_id', 'sharepoint'),
+                client_id=cls._get_config_value('client_id', 'sharepoint'),
+                client_secret=cls._get_config_value('client_secret', 'sharepoint')
+            )
+            sharepoint = SharePointConfig(
+                site_id=cls._get_config_value('site_id', 'sharepoint'),
+                drive_id=cls._get_config_value('drive_id', 'sharepoint'),
+                base_path=cls._get_config_value('base_path', 'sharepoint', default='')
+            )
             if sharepoint:
                 import logging
                 logger = logging.getLogger(__name__)
                 logger.info(f"✅ SharePoint config loaded - base_path: '{sharepoint.base_path}'")
-        
+
         return cls(
             salesforce=salesforce,
             storage=storage,
@@ -242,25 +182,6 @@ class Settings:
             azure=azure,
             sharepoint=sharepoint
         )
-    
-    @staticmethod
-    def _get_required_env(key: str) -> str:
-        """
-        Get a required environment variable.
-        
-        Args:
-            key: Environment variable name.
-            
-        Returns:
-            Environment variable value.
-            
-        Raises:
-            ValueError: If the environment variable is not set.
-        """
-        value = os.getenv(key)
-        if value is None:
-            raise ValueError(f"Required environment variable '{key}' is not set")
-        return value
 
 
 # Singleton instance

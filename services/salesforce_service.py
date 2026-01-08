@@ -114,50 +114,22 @@ class SalesforceService:
         """
         try:
             logger.info("Connecting to Salesforce...")
-            
             sf_config = self.settings.salesforce
-            
-            # Create session with timeout
-            session = requests.Session()
-            session.request = functools.partial(
-                session.request,
-                timeout=sf_config.timeout
-            )
-            
-            # Connect to Salesforce
+
             sf = Salesforce(
                 username=sf_config.username,
                 password=sf_config.password,
                 security_token=sf_config.security_token,
                 consumer_key=sf_config.consumer_key,
                 consumer_secret=sf_config.consumer_secret,
-                session=session
+                client_id='ibtest'
+                #timeout=sf_config.timeout
             )
-            
-            # Get OAuth token for validation
-            payload = {
-                'grant_type': 'password',
-                'client_id': sf_config.consumer_key,
-                'client_secret': sf_config.consumer_secret,
-                'username': sf_config.username,
-                'password': sf_config.password + sf_config.security_token
-            }
-            
-            response = requests.post(
-                sf_config.token_url,
-                data=payload,
-                timeout=sf_config.timeout
-            )
-            
-            if response.status_code != 200:
-                raise SalesforceError(f"Token request failed: {response.text}")
-            
-            logger.info("Successfully connected to Salesforce")
+            logger.info("Successfully connected to Salesforce. Session ID: ...%s", sf.session_id[-5:])
             return sf
-            
         except Exception as e:
             logger.error(f"Failed to connect to Salesforce: {e}")
-            raise SalesforceError(f"Failed to connect to Salesforce: {e}")
+            raise SalesforceError(f"Failed to connect to Salesforce: {e}") from e
     
     @retry_on_timeout(max_retries=3, base_delay=2.0, max_delay=30.0)
     def get_accounts(self) -> Dict[str, str]:
@@ -174,31 +146,25 @@ class SalesforceService:
         """
         try:
             logger.debug("Fetching Salesforce accounts...")
-            
             query = "SELECT Id, Name FROM Account ORDER BY Name ASC"
-            result = self.client.query(query)
+            result = self.client.query_all(query)
+
+            # Use a dictionary to preserve order and ensure uniqueness by name
+            accounts_dict = {record["Name"]: record["Id"] for record in result["records"]}
             
-            accounts_dict = {}
-            seen_names = set()
-            
-            for record in result["records"]:
-                name = record["Name"]
-                
-                # Only add unique names
-                if name not in seen_names:
-                    accounts_dict[record["Id"]] = name
-                    seen_names.add(name)
-            
-            # Add "Other" option
-            if "Other" not in seen_names:
-                accounts_dict["other"] = "Other"
-            
-            logger.info(f"Retrieved {len(accounts_dict)} unique accounts")
-            return accounts_dict
-            
+            # Invert dictionary to get Id -> Name mapping, preserving the first Id for each name
+            inverted_accounts = {v: k for k, v in accounts_dict.items()}
+
+            # Add "Other" option if it's not already present
+            if "Other" not in inverted_accounts.values():
+                inverted_accounts["other"] = "Other"
+
+            logger.info(f"Retrieved {len(inverted_accounts)} unique accounts")
+            return inverted_accounts
+
         except Exception as e:
             logger.error(f"Failed to fetch accounts: {e}")
-            raise SalesforceError(f"Failed to fetch accounts: {e}")
+            raise SalesforceError(f"Failed to fetch accounts: {e}") from e
     
     @retry_on_timeout(max_retries=3, base_delay=2.0, max_delay=30.0)
     def create_opportunity(
@@ -258,12 +224,9 @@ class SalesforceService:
             
             return result
             
-        except (Timeout, ConnectionError) as e:
-            # This will be caught by the retry decorator
-            raise
         except Exception as e:
             logger.error(f"Failed to create opportunity: {e}")
-            raise SalesforceError(f"Failed to create opportunity: {e}")
+            raise SalesforceError(f"Failed to create opportunity: {e}") from e
 
 
 # Cached functions for Streamlit

@@ -10,14 +10,14 @@ import streamlit as st
 # Set page configuration - must be the first Streamlit command
 st.set_page_config(initial_sidebar_state="collapsed")
 
-from pages.utils.base_assessment import BaseAssessment
+from pages.utils.base_assessment_refactored import BaseAssessment
 from pages.utils.fix_create_html import json_to_html
 from pages.utils.constants import (
     YES_NO, REQ_OPTIONS, ACTIVATION_TYPES, 
     WELL_TYPES, SIZE_TYPES, OPTIONS
 )
 from pages.utils.global_styles import subtitle_h2, subtitle_h3, subtitle_h4
-from main import hash_password
+#from main import hash_password
 
 # Check authentication
 if 'authenticated' not in st.session_state or not st.session_state.authenticated:
@@ -37,7 +37,7 @@ if 'authenticated' not in st.session_state or not st.session_state.authenticated
 #     'Fixture SOW',
 #     'Board directory (.tar.gz, .tar)'
 # ]
-ICT_FILE_TYPES = {
+FIX_FILE_TYPES = {
     '*CAD files (Odb ++, *.cad, *.neu, *.fab, *.pad, *.asc, *.ipc, etc)': False,
     'Gerber files': False,
     'Schematics (pdf)': False,
@@ -190,7 +190,7 @@ def main():
     
     # Render the form with ICT-specific sections
     ict_assessment.render_form(
-        file_types=ICT_FILE_TYPES,
+        file_types=FIX_FILE_TYPES,
         html_converter=json_to_html,
         additional_sections=create_fix_specific_sections
     )
