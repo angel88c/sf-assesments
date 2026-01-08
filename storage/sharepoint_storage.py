@@ -170,7 +170,8 @@ class SharePointStorageProvider(StorageProvider):
         Create a folder in SharePoint.
         
         Args:
-            path: Path where to create the folder.
+            path: Path where to create the folder. If it already starts with base_path,
+                  it will be used as-is to avoid duplication.
             
         Returns:
             True if folder was created successfully.
@@ -178,7 +179,11 @@ class SharePointStorageProvider(StorageProvider):
         Raises:
             StorageError: If folder creation fails.
         """
-        item_path = self._get_item_path(path)
+        # Avoid adding base_path if path already includes it
+        if self.base_path and path.startswith(self.base_path):
+            item_path = path
+        else:
+            item_path = self._get_item_path(path)
         return self._create_folder_raw(item_path)
     
     def _folder_exists_raw(self, path: str) -> bool:
@@ -209,12 +214,17 @@ class SharePointStorageProvider(StorageProvider):
         Check if a folder exists in SharePoint.
         
         Args:
-            path: Path to check.
+            path: Path to check. If it already starts with base_path,
+                  it will be used as-is to avoid duplication.
             
         Returns:
             True if folder exists, False otherwise.
         """
-        item_path = self._get_item_path(path)
+        # Avoid adding base_path if path already includes it
+        if self.base_path and path.startswith(self.base_path):
+            item_path = path
+        else:
+            item_path = self._get_item_path(path)
         return self._folder_exists_raw(item_path)
     
     def _upload_file_raw(self, file_content: BinaryIO, destination: str, filename: str) -> bool:
