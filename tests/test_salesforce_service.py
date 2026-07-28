@@ -1,5 +1,7 @@
 from unittest.mock import Mock
 
+from requests.exceptions import Timeout
+
 import services.salesforce_service as salesforce_service
 from services.salesforce_service import SalesforceService
 
@@ -27,6 +29,33 @@ def test_get_active_user_dict_returns_empty_mapping_when_lookup_fails(monkeypatc
     salesforce_service.get_active_user_dict.clear()
 
     assert salesforce_service.get_active_user_dict() == {}
+
+
+def test_get_active_users_retries_timeout_then_returns_users(monkeypatch):
+    service = SalesforceService()
+    client = Mock()
+    client.query_all.side_effect = [
+        Timeout("temporary timeout"),
+        {"records": [{"Id": "005A", "Name": "Ana Garcia"}]},
+    ]
+    monkeypatch.setattr(service, "_sf_client", client)
+    monkeypatch.setattr(salesforce_service.time, "sleep", lambda _: None)
+
+    assert service.get_active_users() == {"005A": "Ana Garcia"}
+    assert client.query_all.call_count == 2
+
+
+def test_get_active_user_dict_returns_empty_mapping_after_retry_exhaustion(monkeypatch):
+    service = SalesforceService()
+    client = Mock()
+    client.query_all.side_effect = Timeout("persistent timeout")
+    monkeypatch.setattr(service, "_sf_client", client)
+    monkeypatch.setattr(salesforce_service, "get_salesforce_service", lambda: service)
+    monkeypatch.setattr(salesforce_service.time, "sleep", lambda _: None)
+    salesforce_service.get_active_user_dict.clear()
+
+    assert salesforce_service.get_active_user_dict() == {}
+    assert client.query_all.call_count == 4
 
 
 def test_create_opportunity_sends_selected_owner_id(monkeypatch):

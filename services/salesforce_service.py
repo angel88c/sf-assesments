@@ -173,6 +173,8 @@ class SalesforceService:
             query = "SELECT Id, Name FROM User WHERE IsActive = true ORDER BY Name ASC"
             result = self.client.query_all(query)
             return {record["Id"]: record["Name"] for record in result["records"]}
+        except (Timeout, ConnectionError):
+            raise
         except Exception as error:
             logger.error("Failed to fetch active Salesforce users: %s", error)
             raise SalesforceError(
@@ -283,6 +285,6 @@ def get_active_user_dict() -> Dict[str, str]:
     """Get a cached mapping of active Salesforce user IDs to names."""
     try:
         return get_salesforce_service().get_active_users()
-    except SalesforceError as error:
+    except (SalesforceError, Timeout, ConnectionError) as error:
         logger.error("Failed to get active Salesforce users: %s", error)
         return {}
