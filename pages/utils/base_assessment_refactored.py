@@ -178,6 +178,12 @@ class BaseAssessment:
         Raises:
             ValidationError: If validation fails.
         """
+        if not self.info.get("owner_id"):
+            raise ValidationError(
+                "An opportunity owner must be selected",
+                field="owner_id",
+            )
+
         # Validate email
         if not validate_email(self.info['contact_email']):
             raise ValidationError(
