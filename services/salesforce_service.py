@@ -190,8 +190,10 @@ class SalesforceService:
         assessment_date: str,
         path: str,
         bu: str,
+        owner_id: Optional[str],
         account_id: Optional[str] = None,
-        owner_id: Optional[str] = None,
+        *,
+        allow_default_owner: bool = False,
     ) -> Dict:
         """
         Create a new opportunity in Salesforce.
@@ -207,7 +209,9 @@ class SalesforceService:
             path: SharePoint path.
             bu: Business unit (ICT, FCT, IAT).
             account_id: Optional account ID to link the opportunity.
-            owner_id: Optional Salesforce user ID to own the opportunity.
+            owner_id: Salesforce user ID to own the opportunity. It is required
+                unless a legacy caller explicitly allows Salesforce's default owner.
+            allow_default_owner: Explicitly retain legacy Salesforce owner assignment.
             
         Returns:
             Dictionary with creation result.
@@ -217,6 +221,11 @@ class SalesforceService:
         """
         try:
             logger.info(f"Creating opportunity: {name}")
+
+            if not allow_default_owner and not isinstance(owner_id, str):
+                raise SalesforceError("A nonblank opportunity owner ID is required")
+            if not allow_default_owner and not owner_id.strip():
+                raise SalesforceError("A nonblank opportunity owner ID is required")
             
             opportunity_data = {
                 "Name": name,
@@ -231,7 +240,7 @@ class SalesforceService:
             if account_id:
                 opportunity_data["AccountId"] = account_id
 
-            if owner_id:
+            if not allow_default_owner:
                 opportunity_data["OwnerId"] = owner_id
             
             # Create opportunity (will retry on timeout)

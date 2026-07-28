@@ -1,13 +1,21 @@
 from unittest.mock import Mock
 
+import pytest
 from requests.exceptions import Timeout
 
 import services.salesforce_service as salesforce_service
+from core.exceptions import SalesforceError
 from services.salesforce_service import SalesforceService
 
 
+def make_service(monkeypatch):
+    """Build a service without loading application settings or credentials."""
+    monkeypatch.setattr(salesforce_service, "get_settings", Mock())
+    return SalesforceService()
+
+
 def test_get_active_users_returns_id_to_name_mapping(monkeypatch):
-    service = SalesforceService()
+    service = make_service(monkeypatch)
     client = Mock()
     client.query_all.return_value = {
         "records": [{"Id": "005A", "Name": "Ana Garcia"}]
@@ -21,7 +29,7 @@ def test_get_active_users_returns_id_to_name_mapping(monkeypatch):
 
 
 def test_get_active_user_dict_returns_empty_mapping_when_lookup_fails(monkeypatch):
-    service = SalesforceService()
+    service = make_service(monkeypatch)
     client = Mock()
     client.query_all.side_effect = RuntimeError("Salesforce User lookup failed")
     monkeypatch.setattr(service, "_sf_client", client)
@@ -32,7 +40,7 @@ def test_get_active_user_dict_returns_empty_mapping_when_lookup_fails(monkeypatc
 
 
 def test_get_active_users_retries_timeout_then_returns_users(monkeypatch):
-    service = SalesforceService()
+    service = make_service(monkeypatch)
     client = Mock()
     client.query_all.side_effect = [
         Timeout("temporary timeout"),
@@ -46,7 +54,7 @@ def test_get_active_users_retries_timeout_then_returns_users(monkeypatch):
 
 
 def test_get_active_user_dict_returns_empty_mapping_after_retry_exhaustion(monkeypatch):
-    service = SalesforceService()
+    service = make_service(monkeypatch)
     client = Mock()
     client.query_all.side_effect = Timeout("persistent timeout")
     monkeypatch.setattr(service, "_sf_client", client)
@@ -59,7 +67,7 @@ def test_get_active_user_dict_returns_empty_mapping_after_retry_exhaustion(monke
 
 
 def test_create_opportunity_sends_selected_owner_id(monkeypatch):
-    service = SalesforceService()
+    service = make_service(monkeypatch)
     client = Mock()
     client.Opportunity.create.return_value = {"success": True, "id": "006A"}
     monkeypatch.setattr(service, "_sf_client", client)
@@ -71,3 +79,25 @@ def test_create_opportunity_sends_selected_owner_id(monkeypatch):
     )
 
     assert client.Opportunity.create.call_args.args[0]["OwnerId"] == "005A"
+
+
+@pytest.mark.parametrize("owner_id", [None, "", "   "])
+def test_create_opportunity_rejects_blank_owner_without_calling_salesforce(
+    monkeypatch, owner_id
+):
+    service = make_service(monkeypatch)
+    client = Mock()
+    monkeypatch.setattr(service, "_sf_client", client)
+
+    with pytest.raises(SalesforceError, match="owner"):
+        service.create_opportunity(
+            name="Project A",
+            stage_name="New Request",
+            close_date="2026-08-31",
+            assessment_date="2026-07-28",
+            path="https://example.test/project",
+            bu="ICT",
+            owner_id=owner_id,
+        )
+
+    client.Opportunity.create.assert_not_called()

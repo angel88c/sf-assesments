@@ -185,7 +185,8 @@ def main():
     ict_assessment = BaseAssessment(
         assessment_type="IAT",
         title="Fixtures Test Assessment",
-        projects_folder="7_Fixtures (FIX)"
+        projects_folder="7_Fixtures (FIX)",
+        owner_selection_enabled=False,
     )
     
     # Render the form with ICT-specific sections

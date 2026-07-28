@@ -33,6 +33,20 @@ from config import get_settings
 
 logger = get_logger(__name__)
 
+OPPORTUNITY_OWNER_ASSESSMENT_TYPES = frozenset({"ICT", "IAT", "FCT"})
+
+
+def get_owner_options(active_users: Dict[str, str]) -> Dict[str, str]:
+    """Return unique display labels mapped to Salesforce user IDs."""
+    name_counts = {}
+    for name in active_users.values():
+        name_counts[name] = name_counts.get(name, 0) + 1
+
+    return {
+        f"{name} ({user_id})" if name_counts[name] > 1 else name: user_id
+        for user_id, name in active_users.items()
+    }
+
 
 class BaseAssessment:
     """
@@ -42,7 +56,14 @@ class BaseAssessment:
     Refactored to use service layer architecture.
     """
     
-    def __init__(self, assessment_type: str, title: str, projects_folder: str):
+    def __init__(
+        self,
+        assessment_type: str,
+        title: str,
+        projects_folder: str,
+        *,
+        owner_selection_enabled: Optional[bool] = None,
+    ):
         """
         Initialize the base assessment.
         
@@ -54,6 +75,11 @@ class BaseAssessment:
         self.assessment_type = assessment_type
         self.title = title
         self.projects_folder = projects_folder
+        self.owner_selection_enabled = (
+            assessment_type in OPPORTUNITY_OWNER_ASSESSMENT_TYPES
+            if owner_selection_enabled is None
+            else owner_selection_enabled
+        )
         self.info: Dict = {}
         self.year = str(datetime.today().year)
         
@@ -73,6 +99,15 @@ class BaseAssessment:
             st.title(self.title)
         with col2:
             load_ibtest_logo()
+
+    @property
+    def requires_opportunity_owner(self) -> bool:
+        """Whether this assessment must select an opportunity owner."""
+        return getattr(
+            self,
+            "owner_selection_enabled",
+            self.assessment_type in OPPORTUNITY_OWNER_ASSESSMENT_TYPES,
+        )
     
     def upload_files(self, file_types: Dict[str, bool]) -> tuple:
         """
@@ -146,19 +181,21 @@ class BaseAssessment:
                     "Company not listed? Write it here.",
                     placeholder="Enter the customer name"
                 )
-                active_users = get_active_user_dict()
-                if active_users:
-                    users_by_name = {name: user_id for user_id, name in active_users.items()}
-                    self.info["owner_id"] = st.selectbox(
-                        r"*Opportunity Owner",
-                        options=list(users_by_name.keys()),
-                        index=None,
-                        placeholder="Select an owner",
-                    )
-                    if self.info["owner_id"]:
-                        self.info["owner_id"] = users_by_name[self.info["owner_id"]]
-                else:
-                    st.error("Unable to load active Salesforce users. Please try again.")
+                if self.requires_opportunity_owner:
+                    active_users = get_active_user_dict()
+                    users_by_name = get_owner_options(active_users)
+                    if active_users:
+                        self.info["owner_id"] = st.selectbox(
+                            r"*Opportunity Owner",
+                            options=list(users_by_name.keys()),
+                            index=None,
+                            placeholder="Select an owner",
+                        )
+                        if self.info["owner_id"]:
+                            self.info["owner_id"] = users_by_name[self.info["owner_id"]]
+                    else:
+                        self.info["owner_id"] = None
+                        st.error("Unable to load active Salesforce users. Please try again.")
                 self.info["contact_phone"] = st.text_input(
                     'Phone Number',
                     placeholder="Enter your phone number"
@@ -178,7 +215,7 @@ class BaseAssessment:
         Raises:
             ValidationError: If validation fails.
         """
-        if not self.info.get("owner_id"):
+        if self.requires_opportunity_owner and not self.info.get("owner_id"):
             raise ValidationError(
                 "An opportunity owner must be selected",
                 field="owner_id",
@@ -351,8 +388,9 @@ class BaseAssessment:
             assessment_date=datetime.now().strftime("%Y-%m-%d"),
             path=sharepoint_url,
             bu=self.assessment_type,
+            owner_id=self.info.get("owner_id"),
             account_id=account_id,
-            owner_id=self.info["owner_id"],
+            allow_default_owner=not self.requires_opportunity_owner,
         )
         
         return result
