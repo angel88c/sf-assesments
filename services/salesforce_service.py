@@ -165,6 +165,13 @@ class SalesforceService:
         except Exception as e:
             logger.error(f"Failed to fetch accounts: {e}")
             raise SalesforceError(f"Failed to fetch accounts: {e}") from e
+
+    @retry_on_timeout(max_retries=3, base_delay=2.0, max_delay=30.0)
+    def get_active_users(self) -> Dict[str, str]:
+        """Get active Salesforce users mapped from IDs to names."""
+        query = "SELECT Id, Name FROM User WHERE IsActive = true ORDER BY Name ASC"
+        result = self.client.query_all(query)
+        return {record["Id"]: record["Name"] for record in result["records"]}
     
     @retry_on_timeout(max_retries=3, base_delay=2.0, max_delay=30.0)
     def create_opportunity(
@@ -175,7 +182,8 @@ class SalesforceService:
         assessment_date: str,
         path: str,
         bu: str,
-        account_id: Optional[str] = None
+        account_id: Optional[str] = None,
+        owner_id: Optional[str] = None,
     ) -> Dict:
         """
         Create a new opportunity in Salesforce.
@@ -191,6 +199,7 @@ class SalesforceService:
             path: SharePoint path.
             bu: Business unit (ICT, FCT, IAT).
             account_id: Optional account ID to link the opportunity.
+            owner_id: Optional Salesforce user ID to own the opportunity.
             
         Returns:
             Dictionary with creation result.
@@ -213,6 +222,9 @@ class SalesforceService:
             # Add account ID if provided
             if account_id:
                 opportunity_data["AccountId"] = account_id
+
+            if owner_id:
+                opportunity_data["OwnerId"] = owner_id
             
             # Create opportunity (will retry on timeout)
             result = self.client.Opportunity.create(opportunity_data)
@@ -258,3 +270,13 @@ def get_unique_account_dict() -> Dict[str, str]:
     except SalesforceError as e:
         logger.error(f"Failed to get accounts: {e}")
         return {"other": "Other"}
+
+
+@st.cache_data(ttl=600)
+def get_active_user_dict() -> Dict[str, str]:
+    """Get a cached mapping of active Salesforce user IDs to names."""
+    try:
+        return get_salesforce_service().get_active_users()
+    except SalesforceError as error:
+        logger.error("Failed to get active Salesforce users: %s", error)
+        return {}
