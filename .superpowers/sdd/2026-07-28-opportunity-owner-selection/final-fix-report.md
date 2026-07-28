@@ -45,4 +45,6 @@ owner-selection tests; no owner test contacts Salesforce, SharePoint, or Azure.
 
 ## Commit
 
-`f7f60f26ad2864b4f2a78fc6f0232de414479154` (`fix: complete opportunity owner safeguards`)
+Implementation and tests: `acd51fa13c0a9d1bce9e943a28319d7dc428ff32`
+(`fix: complete opportunity owner safeguards`). This report is finalized in the
+following documentation commit.
