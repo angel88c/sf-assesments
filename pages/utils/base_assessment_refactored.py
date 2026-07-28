@@ -17,7 +17,11 @@ from pathlib import Path
 from typing import Callable, Dict, List, Optional
 import streamlit as st
 
-from services.salesforce_service import get_salesforce_service, get_unique_account_dict
+from services.salesforce_service import (
+    get_active_user_dict,
+    get_salesforce_service,
+    get_unique_account_dict,
+)
 from services.storage_service import get_storage_service
 from pages.utils.dates_info import get_last_weekday_of_next_month, get_date_after_next_working_days
 from pages.utils.global_styles import set_global_styles, load_ibtest_logo, subtitle_h3
@@ -142,6 +146,19 @@ class BaseAssessment:
                     "Company not listed? Write it here.",
                     placeholder="Enter the customer name"
                 )
+                active_users = get_active_user_dict()
+                if active_users:
+                    users_by_name = {name: user_id for user_id, name in active_users.items()}
+                    self.info["owner_id"] = st.selectbox(
+                        r"*Opportunity Owner",
+                        options=list(users_by_name.keys()),
+                        index=None,
+                        placeholder="Select an owner",
+                    )
+                    if self.info["owner_id"]:
+                        self.info["owner_id"] = users_by_name[self.info["owner_id"]]
+                else:
+                    st.error("Unable to load active Salesforce users. Please try again.")
                 self.info["contact_phone"] = st.text_input(
                     'Phone Number',
                     placeholder="Enter your phone number"
@@ -328,7 +345,8 @@ class BaseAssessment:
             assessment_date=datetime.now().strftime("%Y-%m-%d"),
             path=sharepoint_url,
             bu=self.assessment_type,
-            account_id=account_id
+            account_id=account_id,
+            owner_id=self.info["owner_id"],
         )
         
         return result
