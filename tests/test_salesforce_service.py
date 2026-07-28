@@ -1,5 +1,6 @@
 from unittest.mock import Mock
 
+import services.salesforce_service as salesforce_service
 from services.salesforce_service import SalesforceService
 
 
@@ -15,6 +16,17 @@ def test_get_active_users_returns_id_to_name_mapping(monkeypatch):
     client.query_all.assert_called_once_with(
         "SELECT Id, Name FROM User WHERE IsActive = true ORDER BY Name ASC"
     )
+
+
+def test_get_active_user_dict_returns_empty_mapping_when_lookup_fails(monkeypatch):
+    service = SalesforceService()
+    client = Mock()
+    client.query_all.side_effect = RuntimeError("Salesforce User lookup failed")
+    monkeypatch.setattr(service, "_sf_client", client)
+    monkeypatch.setattr(salesforce_service, "get_salesforce_service", lambda: service)
+    salesforce_service.get_active_user_dict.clear()
+
+    assert salesforce_service.get_active_user_dict() == {}
 
 
 def test_create_opportunity_sends_selected_owner_id(monkeypatch):

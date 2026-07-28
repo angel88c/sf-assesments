@@ -169,9 +169,15 @@ class SalesforceService:
     @retry_on_timeout(max_retries=3, base_delay=2.0, max_delay=30.0)
     def get_active_users(self) -> Dict[str, str]:
         """Get active Salesforce users mapped from IDs to names."""
-        query = "SELECT Id, Name FROM User WHERE IsActive = true ORDER BY Name ASC"
-        result = self.client.query_all(query)
-        return {record["Id"]: record["Name"] for record in result["records"]}
+        try:
+            query = "SELECT Id, Name FROM User WHERE IsActive = true ORDER BY Name ASC"
+            result = self.client.query_all(query)
+            return {record["Id"]: record["Name"] for record in result["records"]}
+        except Exception as error:
+            logger.error("Failed to fetch active Salesforce users: %s", error)
+            raise SalesforceError(
+                f"Failed to fetch active Salesforce users: {error}"
+            ) from error
     
     @retry_on_timeout(max_retries=3, base_delay=2.0, max_delay=30.0)
     def create_opportunity(
