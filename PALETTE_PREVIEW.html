@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>iBtest — Paleta corporativa (preview)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { DEFAULT: "#16337D", hover: "#00072D" },
+            teal:  { DEFAULT: "#0D9488", light: "#F0FAF9", tint: "#E6F4F3" },
+            smoke: "#F5F5F5",
+            ink: "#1F2937", muted: "#4B5563", line: "#E5E7EB",
+          },
+          fontFamily: { sans: ["Inter", "system-ui", "sans-serif"] },
+          boxShadow: { card: "0px 4px 10px rgba(0,0,0,0.08)" },
+          borderRadius: { card: "15px", field: "8px" },
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #0D9488;
+      box-shadow: 0 0 0 3px rgba(13,148,136,0.25);
+    }
+  </style>
+</head>
+<body class="bg-teal-light min-h-screen font-sans text-ink">
+
+  <!-- HEADER -->
+  <header class="bg-brand text-white">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-card bg-white/15 flex items-center justify-center font-bold text-lg">iB</div>
+        <div>
+          <div class="font-semibold leading-tight">iBtest Assessments</div>
+          <div class="text-xs text-white/70">In Circuit Test Assessment</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 text-sm">
+        <span class="px-2 py-1 rounded bg-teal text-white text-xs font-medium">internal</span>
+        <span class="text-white/80">usuario@ibtest.com</span>
+        <button class="px-3 py-1.5 rounded-field border border-white/40 hover:bg-white/10 text-sm">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto p-6 space-y-6">
+
+    <!-- TARJETA: Customer Info -->
+    <section class="bg-white rounded-card shadow-card p-6">
+      <h2 class="text-lg font-semibold text-brand border-b border-line pb-3 mb-4">Customer Information</h2>
+      <p class="text-sm text-muted mb-4">(*) Mandatory Fields</p>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-muted mb-1">*Name or Project Reference</label>
+          <input type="text" placeholder="Enter the name of the project"
+            class="w-full rounded-field border border-line bg-smoke px-3 py-2 text-sm focus:bg-white transition">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-muted mb-1">*Contact Name</label>
+          <input type="text" placeholder="Enter your name"
+            class="w-full rounded-field border border-line bg-smoke px-3 py-2 text-sm focus:bg-white transition">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-muted mb-1">*Company name</label>
+          <select class="w-full rounded-field border border-line bg-smoke px-3 py-2 text-sm focus:bg-white transition">
+            <option>Select from list</option>
+            <option>Customer A</option>
+            <option>Customer B</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-muted mb-1">*Country</label>
+          <select class="w-full rounded-field border border-line bg-smoke px-3 py-2 text-sm focus:bg-white transition">
+            <option>Mexico</option>
+            <option>USA</option>
+            <option>Canada</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-muted mb-1">*Email</label>
+          <input type="email" placeholder="Enter your email"
+            class="w-full rounded-field border border-line bg-smoke px-3 py-2 text-sm focus:bg-white transition">
+          <p class="text-xs text-danger mt-1 hidden">Only corporate emails accepted</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-muted mb-1">*Duplicated Project?</label>
+          <div class="flex gap-4 pt-2">
+            <label class="flex items-center gap-2 text-sm">
+              <input type="radio" name="dup" checked class="accent-teal"> Yes
+            </label>
+            <label class="flex items-center gap-2 text-sm">
+              <input type="radio" name="dup" class="accent-teal"> No
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TARJETA: Feature Fixture (sección ICT) -->
+    <section class="bg-white rounded-card shadow-card p-6">
+      <h2 class="text-lg font-semibold text-brand border-b border-line pb-3 mb-4">Feature Fixture</h2>
+      <div class="grid grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-muted mb-1">*Activation Type</label>
+          <div class="space-y-1.5 text-sm">
+            <label class="flex items-center gap-2"><input type="radio" name="act" class="accent-teal"> Vacuum box</label>
+            <label class="flex items-center gap-2"><input type="radio" name="act" class="accent-teal"> Hold down gates</label>
+            <label class="flex items-center gap-2"><input type="radio" name="act" class="accent-teal"> Pneumatic</label>
+            <label class="flex items-center gap-2"><input type="radio" name="act" class="accent-teal"> InLine Test Fixture</label>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-muted mb-1">*Well Type</label>
+          <div class="space-y-1.5 text-sm">
+            <label class="flex items-center gap-2"><input type="radio" name="well" class="accent-teal"> Single well</label>
+            <label class="flex items-center gap-2"><input type="radio" name="well" class="accent-teal"> Dual well</label>
+            <label class="flex items-center gap-2"><input type="radio" name="well" class="accent-teal"> Dual stage</label>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-muted mb-1">*Size Type</label>
+          <div class="space-y-1.5 text-sm">
+            <label class="flex items-center gap-2"><input type="radio" name="size" class="accent-teal"> Small Kit</label>
+            <label class="flex items-center gap-2"><input type="radio" name="size" class="accent-teal"> Large Kit</label>
+            <label class="flex items-center gap-2"><input type="radio" name="size" class="accent-teal"> Small Extended</label>
+            <label class="flex items-center gap-2"><input type="radio" name="size" class="accent-teal"> Large Extended</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLLAPSIBLE: Flash Programming -->
+    <details class="bg-white rounded-card shadow-card p-0 overflow-hidden">
+      <summary class="cursor-pointer p-6 font-semibold text-brand flex items-center justify-between">
+        <span>Flash Programming</span>
+        <span class="text-muted text-sm">▼</span>
+      </summary>
+      <div class="px-6 pb-6 pt-2 border-t border-line">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-muted mb-1">Flash Programming?</label>
+            <div class="flex gap-3 text-sm">
+              <button class="px-3 py-1 rounded-field border border-line">NA</button>
+              <button class="px-3 py-1 rounded-field bg-teal text-white border border-teal">Required</button>
+              <button class="px-3 py-1 rounded-field border border-line">Optional</button>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-muted mb-1">Programmer (Brand)</label>
+            <input type="text" placeholder="FlashRunner 2.0, FRCube, Phyton..."
+              class="w-full rounded-field border border-line bg-smoke px-3 py-2 text-sm focus:bg-white transition">
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- TABLA (preview AG Grid) -->
+    <section class="bg-white rounded-card shadow-card p-6">
+      <h2 class="text-lg font-semibold text-brand border-b border-line pb-3 mb-4">Submissions History <span class="text-xs font-normal text-muted">(preview AG Grid theme)</span></h2>
+      <div class="overflow-hidden rounded-field border border-line">
+        <table class="w-full text-sm">
+          <thead class="bg-brand text-white">
+            <tr>
+              <th class="text-left px-4 py-2 font-medium">Date</th>
+              <th class="text-left px-4 py-2 font-medium">User</th>
+              <th class="text-left px-4 py-2 font-medium">BU</th>
+              <th class="text-left px-4 py-2 font-medium">Project</th>
+              <th class="text-left px-4 py-2 font-medium">Status</th>
+              <th class="text-left px-4 py-2 font-medium">Opportunity ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="bg-white border-b border-line">
+              <td class="px-4 py-2">2026-06-18</td>
+              <td class="px-4 py-2">usuario@ibtest.com</td>
+              <td class="px-4 py-2"><span class="px-2 py-0.5 rounded bg-teal/15 text-teal text-xs font-medium">ICT</span></td>
+              <td class="px-4 py-2">Proyecto Demo</td>
+              <td class="px-4 py-2"><span class="px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs font-medium">success</span></td>
+              <td class="px-4 py-2 font-mono text-xs">006...XYZ</td>
+            </tr>
+            <tr class="bg-teal-tint border-b border-line">
+              <td class="px-4 py-2">2026-06-17</td>
+              <td class="px-4 py-2">cliente@oem.com</td>
+              <td class="px-4 py-2"><span class="px-2 py-0.5 rounded bg-teal/15 text-teal text-xs font-medium">ICT</span></td>
+              <td class="px-4 py-2">ECU Module A</td>
+              <td class="px-4 py-2"><span class="px-2 py-0.5 rounded bg-red-100 text-danger text-xs font-medium">failed</span></td>
+              <td class="px-4 py-2 text-muted">—</td>
+            </tr>
+            <tr class="bg-white border-b border-line">
+              <td class="px-4 py-2">2026-06-16</td>
+              <td class="px-4 py-2">usuario@ibtest.com</td>
+              <td class="px-4 py-2"><span class="px-2 py-0.5 rounded bg-teal/15 text-teal text-xs font-medium">ICT</span></td>
+              <td class="px-4 py-2">Sensor Hub v2</td>
+              <td class="px-4 py-2"><span class="px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs font-medium">success</span></td>
+              <td class="px-4 py-2 font-mono text-xs">006...ABC</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="flex items-center justify-between mt-3 text-sm text-muted">
+        <span>Showing 1–3 of 24</span>
+        <div class="flex gap-1">
+          <button class="px-2 py-1 rounded-field border border-line text-muted">‹</button>
+          <button class="px-2 py-1 rounded-field bg-brand text-white">1</button>
+          <button class="px-2 py-1 rounded-field border border-line">2</button>
+          <button class="px-2 py-1 rounded-field border border-line">3</button>
+          <button class="px-2 py-1 rounded-field border border-line">›</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- BOTONES + TOAST -->
+    <section class="bg-white rounded-card shadow-card p-6">
+      <h2 class="text-lg font-semibold text-brand border-b border-line pb-3 mb-4">Actions</h2>
+      <div class="flex gap-3 mb-4">
+        <button class="px-5 py-2 rounded-field bg-brand text-white font-semibold hover:bg-brand-hover transition">Submit</button>
+        <button class="px-5 py-2 rounded-field border border-teal text-teal font-semibold hover:bg-teal-tint transition">Logout</button>
+        <button class="px-5 py-2 rounded-field border border-line text-muted hover:bg-smoke transition">Cancel</button>
+      </div>
+      <!-- Toasts -->
+      <div class="space-y-2">
+        <div class="rounded-field border border-green-200 bg-green-50 text-green-800 px-4 py-2.5 text-sm flex items-center gap-2">
+          <span>✅</span> Opportunity created successfully! <span class="font-mono text-xs ml-auto">006...XYZ</span>
+        </div>
+        <div class="rounded-field border border-red-200 bg-red-50 text-danger px-4 py-2.5 text-sm flex items-center gap-2">
+          <span>❌</span> Project already exists. Contact Sales Manager.
+        </div>
+        <div class="rounded-field border border-amber-200 bg-amber-50 text-amber-800 px-4 py-2.5 text-sm flex items-center gap-2">
+          <span>⚠️</span> Salesforce error. Try again or contact admin.
+        </div>
+      </div>
+    </section>
+
+    <!-- PALETA -->
+    <section class="bg-white rounded-card shadow-card p-6">
+      <h2 class="text-lg font-semibold text-brand border-b border-line pb-3 mb-4">Palette tokens</h2>
+      <div class="grid grid-cols-4 gap-3 text-xs">
+        <div class="rounded-field overflow-hidden border border-line">
+          <div class="h-16 bg-brand"></div><div class="p-2"><b>--dark-blue</b><br>#16337D</div>
+        </div>
+        <div class="rounded-field overflow-hidden border border-line">
+          <div class="h-16 bg-teal"></div><div class="p-2"><b>--teal</b><br>#0D9488</div>
+        </div>
+        <div class="rounded-field overflow-hidden border border-line">
+          <div class="h-16 bg-teal-light"></div><div class="p-2"><b>--teal-light</b><br>#F0FAF9</div>
+        </div>
+        <div class="rounded-field overflow-hidden border border-line">
+          <div class="h-16 bg-smoke"></div><div class="p-2"><b>--whitesmoke</b><br>#F5F5F5</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</body>
+</html>
